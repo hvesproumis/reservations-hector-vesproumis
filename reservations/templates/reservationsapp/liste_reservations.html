@@ -1,0 +1,15 @@
+{% extends 'reservationsapp/base.html' %}
+
+{% block title %}Liste des Réservations{% endblock %}
+
+{% block content %}
+<div class="container pt-2 my-2 bg-primary text-white">
+    <h1>Liste des Réservations</h1>
+</div>
+
+<ul>
+    {% for reservation in reservations %}
+        <li>Réservation {{ reservation.if_number }} pour {{ reservation.passager.name }} sur le trajet de {{ reservation.trajet.depgare }} à {{ reservation.trajet.arrgare }} le {{ reservation.trajet.depdh|date:"j F Y à H\hi" }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

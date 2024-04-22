@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Trajet
+from .models import Trajet, Reservation
 from .forms import TrajetSearchForm
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -21,3 +21,9 @@ def trajets(request):
                 tous_les_trajets = tous_les_trajets.filter(arrgare=gare)
 
     return render(request, 'reservationsapp/liste_trajets.html', {'trajets': tous_les_trajets, 'form': form})
+
+@login_required
+def reservations(request):
+    toutes_les_reservations = Reservation.objects.all()
+    
+    return render(request, 'reservationsapp/liste_reservations.html', {'reservations': toutes_les_reservations})
