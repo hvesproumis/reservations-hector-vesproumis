@@ -14,7 +14,7 @@
     </form>
     <ul>
         {% for trajet in trajets %}
-            <li>Trajet de {{ trajet.depgare }} à {{ trajet.arrgare }} - Départ: {{ trajet.depdh|date:"d M Y H:i" }} - Arrivée: {{ trajet.arrdh|date:"d M Y H:i" }}</li>
+            <li>Trajet de <b>{{ trajet.depgare }}</b> à {{ trajet.arrgare }} - Départ le <b>{{ trajet.depdh|date:"j F Y à H\hi" }}</b> - Arrivée le {{ trajet.arrdh|date:"j F Y à H\hi" }}.</li>
         {% endfor %}
     </ul>
 {% endblock %}

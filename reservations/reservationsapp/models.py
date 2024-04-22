@@ -3,8 +3,10 @@ from django.db import models
 class Gare(models.Model):
     ville = models.CharField(max_length=200)
     nomgare = models.CharField(max_length=200)
+
     def __str__(self):
-        return self.nomgare
+        return f"{self.ville} {self.nomgare}"
+
     
 class Trajet(models.Model):
     depgare = models.ForeignKey(Gare, on_delete=models.CASCADE, related_name='depart_trajets', db_comment="Gare de départ")
