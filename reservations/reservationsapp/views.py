@@ -1,6 +1,10 @@
 from django.shortcuts import render
 from .models import Trajet
 from .forms import TrajetSearchForm
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+
+
 
 def trajets(request):
     form = TrajetSearchForm(request.GET or None)
@@ -17,4 +21,3 @@ def trajets(request):
                 tous_les_trajets = tous_les_trajets.filter(arrgare=gare)
 
     return render(request, 'reservationsapp/liste_trajets.html', {'trajets': tous_les_trajets, 'form': form})
-
