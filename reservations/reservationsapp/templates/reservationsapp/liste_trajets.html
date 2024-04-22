@@ -1,0 +1,20 @@
+{% extends 'reservationsapp/base.html' %}
+
+{% block title %}Liste des trajets{% endblock %}
+
+{% block content %}
+    <div class="container pt-2 my-2 bg-primary text-white">
+    <h1>Liste des trajets</h1>
+    </div>
+      
+    <h1>Trajets Disponibles</h1>
+    <form method="get">
+        {{ form.as_p }}
+        <button type="submit">Filtrer les trajets</button>
+    </form>
+    <ul>
+        {% for trajet in trajets %}
+            <li>Trajet de {{ trajet.depgare }} à {{ trajet.arrgare }} - Départ: {{ trajet.depdh|date:"d M Y H:i" }} - Arrivée: {{ trajet.arrdh|date:"d M Y H:i" }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
