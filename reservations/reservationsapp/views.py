@@ -24,11 +24,19 @@ def trajets(request):
 
 @login_required
 def reservations(request):
-    toutes_les_reservations = Reservation.objects.all()
+    if request.user.is_staff:
+        toutes_les_reservations = Reservation.objects.all()
+    else:
+        toutes_les_reservations = Reservation.objects.filter(client__email=request.user.email)
     
     return render(request, 'reservationsapp/liste_reservations.html', {'reservations': toutes_les_reservations})
 
+
 @login_required
 def reservation_detail(request, if_number):
-    reservation = get_object_or_404(Reservation, if_number=if_number)
+    if request.user.is_staff:
+        reservation = get_object_or_404(Reservation, if_number=if_number)
+    else:
+        reservation = get_object_or_404(Reservation, if_number=if_number, client__email=request.user.email)
+
     return render(request, 'reservationsapp/reservation_detail.html', {'reservation': reservation})

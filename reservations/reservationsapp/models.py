@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 def generate_if_number():
     import random
@@ -12,6 +13,7 @@ class Gare(models.Model):
         return f"{self.ville} {self.nomgare}"
 
 class Client(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     first_name = models.CharField(max_length=100, verbose_name="Prénom", default="Prénom")
     last_name = models.CharField(max_length=100, verbose_name="Nom", default="Prénom")
     email = models.EmailField(verbose_name="Email")
