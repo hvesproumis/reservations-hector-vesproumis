@@ -9,7 +9,9 @@
 
 <ul>
     {% for reservation in reservations %}
-        <li>Réservation {{ reservation.if_number }} pour {{ reservation.passager.name }} sur le trajet de {{ reservation.trajet.depgare }} à {{ reservation.trajet.arrgare }} le {{ reservation.trajet.depdh|date:"j F Y à H\hi" }}</li>
+        <li>
+            Réservation <a href="{% url 'reservation_detail' reservation.if_number %}">{{ reservation.if_number }}</a> pour {{ reservation.passager.first_name }} {{ reservation.passager.last_name }} sur le trajet de {{ reservation.trajet.depgare.ville }} - {{ reservation.trajet.depgare.nomgare }} à {{ reservation.trajet.arrgare.ville }} - {{ reservation.trajet.arrgare.nomgare }} le {{ reservation.trajet.depdh|date:"j F Y à H:i" }}.
+        </li>
     {% endfor %}
 </ul>
 {% endblock %}

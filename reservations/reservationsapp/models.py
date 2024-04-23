@@ -21,7 +21,7 @@ class Client(models.Model):
         return f"{self.first_name} {self.last_name}"
     
 
-class Passenger(models.Model):
+class Passager(models.Model):
     first_name = models.CharField(max_length=100, verbose_name="Prénom", default="Prénom")
     last_name = models.CharField(max_length=100, verbose_name="Nom", default="Nom")
     date_of_birth = models.DateField(verbose_name="Date de naissance", null=True, blank=True)
@@ -43,7 +43,7 @@ class Reservation(models.Model):
     seat_number = models.IntegerField(default=1, verbose_name="Numéro de place")
     car_number = models.IntegerField(default=1, verbose_name="Numéro de voiture")
     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE, related_name='reservations', verbose_name="Trajet")
-    passager = models.ForeignKey(Passenger, on_delete=models.CASCADE, related_name='reservations', verbose_name="Passager")
+    passager = models.ForeignKey(Passager, on_delete=models.CASCADE, related_name='reservations', verbose_name="Passager")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='reservations', verbose_name="Client")
 
     def __str__(self):

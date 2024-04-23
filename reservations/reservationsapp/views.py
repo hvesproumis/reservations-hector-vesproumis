@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Trajet, Reservation
 from .forms import TrajetSearchForm
 from django.conf import settings
@@ -27,3 +27,8 @@ def reservations(request):
     toutes_les_reservations = Reservation.objects.all()
     
     return render(request, 'reservationsapp/liste_reservations.html', {'reservations': toutes_les_reservations})
+
+@login_required
+def reservation_detail(request, if_number):
+    reservation = get_object_or_404(Reservation, if_number=if_number)
+    return render(request, 'reservationsapp/reservation_detail.html', {'reservation': reservation})
