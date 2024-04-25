@@ -43,14 +43,39 @@
     <div class="trajets-section">
         <h3>Trajets disponibles</h3>
         {% for trajet in page_obj %}
-            <div class="card mb-2">
-                <div class="card-body">
-                    <p>{{ trajet.depgare.ville }} {{ trajet.depgare.nomgare }} à {{ trajet.arrgare.ville }} {{ trajet.arrgare.nomgare }} - Départ : {{ trajet.depdh|date:"d M Y H:i" }}</p>
-                </div>
+        <div class="card mb-2">
+            <div class="card-body">
+                <p>{{ trajet.depgare.ville }} {{ trajet.depgare.nomgare }} à {{ trajet.arrgare.ville }} {{ trajet.arrgare.nomgare }} - Départ : {{ trajet.depdh|date:"d M Y H:i" }}</p>
             </div>
+        </div>
         {% empty %}
             <p>Aucun trajet disponible.</p>
         {% endfor %}
+        
+        <!-- Contrôles de pagination -->
+        {% if page_obj.has_other_pages %}
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+            </li>
+            {% endif %}
+            <li class="page-item active">
+                <a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a>
+            </li>
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+        {% endif %}
     </div>
     <div class="text-center mb-2">
         <a href="{% url 'create_reservation' %}" class="btn btn-primary">Nouvelle réservation</a>
