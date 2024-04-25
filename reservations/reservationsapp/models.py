@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+import random
 
 def generate_if_number():
     import random
@@ -43,11 +44,16 @@ class Trajet(models.Model):
 class Reservation(models.Model):
     dateresa = models.DateField(auto_now_add=True, verbose_name="Date de la réservation")
     if_number = models.CharField(max_length=6, default=generate_if_number, unique=True, verbose_name="Numéro de la réservation")
-    seat_number = models.IntegerField(default=1, verbose_name="Numéro de place")
-    car_number = models.IntegerField(default=1, verbose_name="Numéro de voiture")
+    seat_number = models.IntegerField(blank=True, null=True, verbose_name="Numéro de place")
+    car_number = models.IntegerField(blank=True, null=True, verbose_name="Numéro de voiture")
     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE, related_name='reservations', verbose_name="Trajet")
     passager = models.ForeignKey(Passager, on_delete=models.PROTECT, related_name='reservations', verbose_name="Passager")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='reservations', verbose_name="Client")
-
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  
+            self.seat_number = random.randint(1, 120)
+            self.car_number = random.randint(1, 14)
+        super(Reservation, self).save(*args, **kwargs)
     def __str__(self):
         return f"Réservation {self.if_number} pour {self.passager.first_name} {self.passager.last_name}"

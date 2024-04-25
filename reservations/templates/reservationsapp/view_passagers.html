@@ -1,7 +1,28 @@
 {% extends 'reservationsapp/base.html' %}
 
 {% block content %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px; 
+    }
+    th, td {
+        padding: 8px; 
+        text-align: left;
+    }
+    th {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    tbody tr {
+        background-color: #ffffff; 
+        border-radius: 5px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    }
+</style>
 <h2>Mes Passagers</h2>
+<div class="container pt-2 pb-2">
 <table>
     <thead>
         <tr>
@@ -18,8 +39,8 @@
             <td>{{ passager.last_name }}</td>
             <td>{{ passager.date_of_birth|date:"d M Y" }}</td>
             <td>
-                <a href="{% url 'edit_passager' passager.id %}">Éditer</a> | 
-                <a href="{% url 'delete_passager' passager.id %}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce passager ? Cette action est irréversible.');">Supprimer</a>
+                <a href="{% url 'edit_passager' passager.id %}" class="btn btn-warning">Éditer</a> | 
+                <a href="{% url 'delete_passager' passager.id %}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce passager ? Cette action est irréversible.');">Supprimer</a>
             </td>
         </tr>
         {% empty %}
@@ -29,5 +50,6 @@
         {% endfor %}
     </tbody>
 </table>
-<a href="{% url 'create_passager' %}">Ajouter un nouveau passager</a>
+</div>
+<a href="{% url 'create_passager' %}" class="btn btn-primary">Ajouter un nouveau passager</a>
 {% endblock %}

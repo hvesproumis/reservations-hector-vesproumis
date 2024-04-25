@@ -80,7 +80,7 @@ def reservation_detail(request, if_number):
     if request.user.is_staff:
         reservation = get_object_or_404(Reservation, if_number=if_number)
     else:
-        reservation = get_object_or_404(Reservation, if_number=if_number, client__email=request.user.email)
+        reservation = get_object_or_404(Reservation, if_number=if_number, client__user=request.user)
 
     return render(request, 'reservationsapp/reservation_detail.html', {'reservation': reservation})
 
@@ -98,8 +98,10 @@ def edit_reservation(request, if_number=None):
 
     if if_number:
         reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
+        template_name = 'reservationsapp/edit_reservation.html'  
     else:
         reservation = Reservation(client=client)
+        template_name = 'reservationsapp/create_reservation.html'  
 
     client_form = ClientForm(request.POST or None, instance=client)
     reservation_form = ReservationForm(request.POST or None, instance=reservation, user=request.user)
@@ -113,7 +115,7 @@ def edit_reservation(request, if_number=None):
             reservation.save()
             return redirect('reservation_detail', if_number=reservation.if_number)
 
-    return render(request, 'reservationsapp/edit_reservation.html', {
+    return render(request, template_name, {
         'client_form': client_form,
         'reservation_form': reservation_form
     })

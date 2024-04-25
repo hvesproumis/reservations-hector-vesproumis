@@ -3,16 +3,18 @@
 {% block title %}Créer une nouvelle réservation{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 mb-4">
     <h2>Nouvelle réservation</h2>
     <form method="post">
         {% csrf_token %}
-        <h4>Client</h4>
+        <h4>Détails client</h4>
+        <div class="d-flex justify-content-between mt-4">
         {{ client_form.as_p }}
+        </div>
         <h4>Détails de la réservation</h4>
         {{ reservation_form.as_p }}
-        <p>Si vous n'avez enregistré aucun passager, <a href="{% url 'create_passager' %}">en créer un ici</a>.</p>
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <p>Si vous n'avez enregistré aucun passager • <a href="{% url 'create_passager' %}"class="btn btn-primary">cliquez ici</a></p>
+        <button type="submit" class="btn btn-success">Enregistrer</button>
     </form>
 </div>
 {% endblock %}

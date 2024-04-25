@@ -3,12 +3,18 @@
 
 {% block content %}
   <h2>Connexion</h2>
+  <div class="container mt-3">
   <form method="post" action="{% url 'login' %}">
     {% csrf_token %}
     {{ form }}
     <input type="submit" value="connexion">
     <input type="hidden" name="next" value="{{ request.GET.next|default:LOGIN_REDIRECT_URL }}">
     </form>
-  <a href="{% url 'password_reset' %}">Mot de passe oublié?</a>
-  <a href="{% url 'signup' %}">Créer un compte</a>
+  </div>
+  <div class="d-flex align-items-center pt-4 pb-4">
+    <a href="{% url 'password_reset' %}" class="btn btn-primary" style="margin-right: 20px; margin-bottom: 10px;">Mot de passe oublié?</a>
+    <a href="{% url 'signup' %}" class="btn btn-primary" style="margin-left: 20px; margin-bottom: 10px;">Créer un compte</a>
+    
+  </div>
 {% endblock %}
+

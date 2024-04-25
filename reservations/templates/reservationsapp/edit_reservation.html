@@ -3,16 +3,37 @@
 {% block title %}Modifier la réservation{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<style>
+    .form-section {
+        background-color: #ffffff;
+        padding: 20px; 
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 20px; 
+    }
+    .form-section h4 {
+        margin-top: 0;
+        color: #333; 
+    }
+    .btn-primary {
+        width: auto; 
+        padding: 10px 20px; 
+    }
+</style>
+<div class="container mt-4 mb-4">
     <h2>Modifier la réservation</h2>
-    <form method="post">
+    <form method="post" class="mt-4">
         {% csrf_token %}
-        <h4>Détails du client</h4>
-        {{ client_form.as_p }}
-
-        <h4>Détails de la réservation</h4>
-        {{ reservation_form.as_p }}
-
+        <div class="form-section">
+            <h4>Détails du client</h4>
+            <div class="d-flex flex-wrap justify-content-between mt-4">
+                {{ client_form.as_p }}
+            </div>
+        </div>
+        <div class="form-section">
+            <h4>Détails de la réservation</h4>
+            {{ reservation_form.as_p }}
+        </div>
         <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
     </form>
 </div>

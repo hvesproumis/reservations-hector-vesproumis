@@ -3,7 +3,7 @@
 {% block title %}Détail de votre réservation - n°{{ reservation.if_number }}{% endblock %}
 
 {% block content %}
-<div class="container pt-2 my-2 bg-primary text-white">
+<div class="container pt-2 my-2">
     <h3>Informations</h3>
 </div>
 
@@ -15,6 +15,8 @@
     <p><b>Ville et gare de départ :</b> {{ reservation.trajet.depgare.ville }} - {{ reservation.trajet.depgare.nomgare }}</p>
     <p><b>Ville et gare d'arrivée :</b> {{ reservation.trajet.arrgare.ville }} - {{ reservation.trajet.arrgare.nomgare }}</p>
     <p><b>Date et heure du trajet :</b> {{ reservation.trajet.depdh|date:"d-m-Y H:i" }} - {{ reservation.trajet.arrdh|date:"d-m-Y H:i" }}</p>
+    <p><b>Voiture :</b> {{ reservation.car_number }}</p>
+    <p><b>Place :</b> {{ reservation.seat_number }}</p>
     <a href="{% url 'edit_reservation' if_number=reservation.if_number %}" class="btn btn-warning">Modifier cette réservation</a>
 </div>
 {% endblock %}

@@ -1,19 +1,59 @@
 {% extends 'reservationsapp/base.html' %}
+{% load static %}
 
 {% block content %}
-<h1>Liste des trajets</h1>
-<form method="get">
-    {{ form.as_p }}
-    <button type="submit">Filtrer les trajets</button>
-</form>
+<style>
+    .header-logo {
+        text-align: center;
+        padding: 20px 0;
+    }
+    .header-logo img {
+        width: 100px;  
+        border: 1px solid #ccc;  
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .form-search {
+        margin-top: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .trajets-section {
+        padding: 20px 0;
+    }
+    .btn-primary {
+        margin-top: 20px;
+    }
+</style>
 
-<div>
-    <h2>Trajets disponibles</h2>
-    {% for trajet in page_obj %}
-        <p>{{ trajet.depgare.ville }} {{ trajet.depgare.nomgare }} à {{ trajet.arrgare.ville }} {{ trajet.arrgare.nomgare }} - Départ : {{ trajet.depdh }}</p>
-    {% empty %}
-        <p>Aucun trajet disponible.</p>
-    {% endfor %}
+<div class="header-logo">
+    <img src="{% static 'images/logositeweb.png' %}" alt="France Rail Logo">
 </div>
-<a href="{% url 'create_reservation' %}">Nouvelle réservation</a>
+<div class="container mt-3">
+    <div class="row justify-content-center">
+        <div class="col-md-8 form-search">
+            <form method="get">
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success">Filtrer les trajets</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="trajets-section">
+        <h3>Trajets disponibles</h3>
+        {% for trajet in page_obj %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <p>{{ trajet.depgare.ville }} {{ trajet.depgare.nomgare }} à {{ trajet.arrgare.ville }} {{ trajet.arrgare.nomgare }} - Départ : {{ trajet.depdh|date:"d M Y H:i" }}</p>
+                </div>
+            </div>
+        {% empty %}
+            <p>Aucun trajet disponible.</p>
+        {% endfor %}
+    </div>
+    <div class="text-center mb-2">
+        <a href="{% url 'create_reservation' %}" class="btn btn-primary">Nouvelle réservation</a>
+    </div>
+</div>
 {% endblock %}

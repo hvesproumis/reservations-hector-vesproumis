@@ -23,7 +23,7 @@ class ClientForm(ModelForm):
 class SignUpForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True, help_text='Requis.', label='Prénom')
     last_name = forms.CharField(max_length=30, required=True, help_text='Requis.', label='Nom')
-    email = forms.EmailField(required=True, help_text='Requis', label='E-mail')  # Modifiez cette ligne
+    email = forms.EmailField(required=True, help_text='Requis', label='E-mail')
 
     class Meta:
         model = User
@@ -63,11 +63,9 @@ class ReservationForm(forms.ModelForm):
 
     class Meta:
         model = Reservation
-        fields = ['trajet', 'existing_passager', 'seat_number', 'car_number']
+        fields = ['trajet', 'existing_passager'] 
         widgets = {
             'trajet': forms.Select(attrs={'class': 'form-control'}),
-            'seat_number': forms.NumberInput(attrs={'class': 'form-control'}),
-            'car_number': forms.NumberInput(attrs={'class': 'form-control'})
         }
 
     def __init__(self, *args, **kwargs):
@@ -75,6 +73,7 @@ class ReservationForm(forms.ModelForm):
         super(ReservationForm, self).__init__(*args, **kwargs)
         if user:
             self.fields['existing_passager'].queryset = Passager.objects.filter(user=user)
+
 
 #Formulaire passager
 
