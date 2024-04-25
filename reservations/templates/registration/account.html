@@ -1,0 +1,12 @@
+{% extends 'reservationsapp/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Mon compte</h2>
+    <p><strong>Nom d'utilisateur :</strong> {{ user.username }}</p>
+    <p><strong>Prénom :</strong> {{ user.first_name }}</p>
+    <p><strong>Nom :</strong> {{ user.last_name }}</p>
+    <p><strong>E-mail :</strong> {{ user.email }}</p>
+    <a href="{% url 'update_profile' %}" class="btn btn-primary">Modifier mes informations</a>
+</div>
+{% endblock %}

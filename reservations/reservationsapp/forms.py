@@ -2,12 +2,15 @@ from django import forms
 from .models import Gare, Reservation, Trajet, Passager, Client
 from django.forms import ModelForm, inlineformset_factory
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
+
+#Gestion du client
 
 class ClientForm(ModelForm):
     class Meta:
         model = Client
-        fields = ['first_name', 'last_name', 'email', 'address']  # Include all fields you need
+        fields = ['first_name', 'last_name', 'email', 'address']
         widgets = {
             'first_name': forms.TextInput(attrs={'readonly': 'readonly'}),
             'last_name': forms.TextInput(attrs={'readonly': 'readonly'}),
@@ -15,6 +18,33 @@ class ClientForm(ModelForm):
             'address': forms.TextInput() 
         }
 
+#Gestion de l'utilisateur
+        
+class SignUpForm(UserCreationForm):
+    first_name = forms.CharField(max_length=30, required=True, help_text='Requis.', label='Prénom')
+    last_name = forms.CharField(max_length=30, required=True, help_text='Requis.', label='Nom')
+    email = forms.EmailField(required=True, help_text='Requis', label='E-mail')  # Modifiez cette ligne
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
+        labels = {
+            'username': 'Nom d’utilisateur',
+            'password1': 'Mot de passe',
+            'password2': 'Confirmation du mot de passe',
+        }
+
+class UserUpdateForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=30, required=False, label='Prénom')
+    last_name = forms.CharField(max_length=30, required=False, label='Nom')
+    email = forms.EmailField(required=True, label='E-mail')
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+
+#Gestion de la recherche trajet
 
 class TrajetSearchForm(forms.Form):
     gare = forms.ModelChoiceField(queryset=Gare.objects.all(), required=False, label="Choisir une gare")
@@ -22,6 +52,8 @@ class TrajetSearchForm(forms.Form):
 
 from django import forms
 from .models import Reservation, Passager
+
+#Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):
     existing_passager = forms.ModelChoiceField(
@@ -43,6 +75,8 @@ class ReservationForm(forms.ModelForm):
         super(ReservationForm, self).__init__(*args, **kwargs)
         if user:
             self.fields['existing_passager'].queryset = Passager.objects.filter(user=user)
+
+#Formulaire passager
 
 class PassagerForm(forms.ModelForm):
     class Meta:

@@ -12,20 +12,26 @@
 <div class="container pt-10">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'trajets' %}">Trains.isae.fr</a>
+            <a class="navbar-brand" href="{% url 'trajets' %}">France Rail</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'trajets' %}active{% endif %}" href="{% url 'trajets' %}">Trajets</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'trajets' %}active{% endif %}" href="{% url 'trajets' %}">Voyager</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'reservations' %}active{% endif %}" href="{% url 'reservations' %}">Mes Réservations</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'create_reservation' %}active{% endif %}" href="{% url 'create_reservation' %}">Réserver un voyage</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'reservations' %}active{% endif %}" href="{% url 'reservations' %}">Mes futurs voyages</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'view_passagers' %}active{% endif %}" href="{% url 'view_passagers' %}">Mes passagers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'account' %}active{% endif %}" href="{% url 'account' %}">Mon compte</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">

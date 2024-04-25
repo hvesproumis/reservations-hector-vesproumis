@@ -1,0 +1,14 @@
+<!-- signup.html -->
+{% extends 'reservationsapp/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Inscription</h2>
+  <form method="post" action="{% url 'signup' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Créer mon compte</button>
+  </form>
+  <p>Déjà inscrit ? <a href="{% url 'login' %}">Connectez-vous ici</a>.</p>
+</div>
+{% endblock %}

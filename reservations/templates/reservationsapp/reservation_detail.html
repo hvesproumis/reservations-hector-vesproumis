@@ -15,6 +15,6 @@
     <p><b>Ville et gare de départ :</b> {{ reservation.trajet.depgare.ville }} - {{ reservation.trajet.depgare.nomgare }}</p>
     <p><b>Ville et gare d'arrivée :</b> {{ reservation.trajet.arrgare.ville }} - {{ reservation.trajet.arrgare.nomgare }}</p>
     <p><b>Date et heure du trajet :</b> {{ reservation.trajet.depdh|date:"d-m-Y H:i" }} - {{ reservation.trajet.arrdh|date:"d-m-Y H:i" }}</p>
+    <a href="{% url 'edit_reservation' if_number=reservation.if_number %}" class="btn btn-warning">Modifier cette réservation</a>
 </div>
 {% endblock %}
-

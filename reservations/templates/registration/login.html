@@ -10,4 +10,5 @@
     <input type="hidden" name="next" value="{{ request.GET.next|default:LOGIN_REDIRECT_URL }}">
     </form>
   <a href="{% url 'password_reset' %}">Mot de passe oublié?</a>
+  <a href="{% url 'signup' %}">Créer un compte</a>
 {% endblock %}

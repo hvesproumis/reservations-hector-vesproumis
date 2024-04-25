@@ -1,15 +1,49 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Trajet, Client, Reservation, Passager
-from .forms import TrajetSearchForm, ReservationForm, ClientForm, PassagerForm
+from .forms import TrajetSearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory
 from django.db import transaction
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 
+#Utilisateur
 
+def signup(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user.refresh_from_db()
+            user.first_name = form.cleaned_data.get('first_name')
+            user.last_name = form.cleaned_data.get('last_name')
+            user.save()
+            login(request, user)
+            return redirect('login')
+    else:
+        form = SignUpForm()
+    return render(request, 'registration/signup.html', {'form': form})
 
+@login_required
+def account(request):
+    return render(request, 'registration/account.html')
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('account')
+    else:
+        form = UserUpdateForm(instance=request.user)
+
+    return render(request, 'registration/update_profile.html', {'form': form})
+
+#Trajets
 
 def trajets(request):
     form = TrajetSearchForm(request.GET or None)
@@ -29,14 +63,14 @@ def trajets(request):
 
     return render(request, 'reservationsapp/liste_trajets.html', {'form': form, 'page_obj': page_obj})
 
-
+#Réservations
 
 @login_required
 def reservations(request):
     if request.user.is_staff:
         toutes_les_reservations = Reservation.objects.all()
     else:
-        toutes_les_reservations = Reservation.objects.filter(client__email=request.user.email)
+        toutes_les_reservations = Reservation.objects.filter(client__user=request.user)
     
     return render(request, 'reservationsapp/liste_reservations.html', {'reservations': toutes_les_reservations})
 
@@ -51,26 +85,30 @@ def reservation_detail(request, if_number):
     return render(request, 'reservationsapp/reservation_detail.html', {'reservation': reservation})
 
 @login_required
-def edit_reservation(request):
-    client, created = Client.objects.get_or_create(
+def edit_reservation(request, if_number=None):
+    client, created = Client.objects.update_or_create(
         user=request.user,
         defaults={
             'first_name': request.user.first_name or 'Default First Name',
             'last_name': request.user.last_name or 'Default Last Name',
             'email': request.user.email or 'email@example.com',
-            'address': 'Default Address'
+            'address': 'Entrez votre adresse'
         }
     )
 
+    if if_number:
+        reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
+    else:
+        reservation = Reservation(client=client)
+
     client_form = ClientForm(request.POST or None, instance=client)
-    reservation_form = ReservationForm(request.POST or None, user=request.user)
+    reservation_form = ReservationForm(request.POST or None, instance=reservation, user=request.user)
 
     if request.method == 'POST':
         if client_form.is_valid() and reservation_form.is_valid():
-            client = client_form.save()  # Assurez-vous que les modifications du client sont enregistrées
-            
+            client = client_form.save()  
             reservation = reservation_form.save(commit=False)
-            reservation.client = client
+            reservation.client = client  
             reservation.passager = reservation_form.cleaned_data['existing_passager']
             reservation.save()
             return redirect('reservation_detail', if_number=reservation.if_number)
@@ -80,7 +118,10 @@ def edit_reservation(request):
         'reservation_form': reservation_form
     })
 
+
     
+#Passagers
+
 def get_passager_details(request, passager_id):
     try:
         passager = Passager.objects.get(id=passager_id, user=request.user)
@@ -99,16 +140,16 @@ def create_passager(request):
         form = PassagerForm(request.POST)
         if form.is_valid():
             passager = form.save(commit=False)
-            passager.user = request.user  # Associe le passager à l'utilisateur
+            passager.user = request.user 
             passager.save()
-            return redirect('view_passagers')  # Rediriger vers la liste des passagers ou toute autre page appropriée
+            return redirect('view_passagers')
     else:
         form = PassagerForm()
     return render(request, 'reservationsapp/create_passager.html', {'form': form})
 
 @login_required
 def view_passagers(request):
-    passagers = Passager.objects.filter(user=request.user)  # Obtient tous les passagers de l'utilisateur connecté
+    passagers = Passager.objects.filter(user=request.user) 
     return render(request, 'reservationsapp/view_passagers.html', {'passagers': passagers})
 
 @login_required
@@ -118,7 +159,7 @@ def edit_passager(request, passager_id):
         form = PassagerForm(request.POST, instance=passager)
         if form.is_valid():
             form.save()
-            return redirect('view_passagers')  # Redirige vers la liste des passagers
+            return redirect('view_passagers')
     else:
         form = PassagerForm(instance=passager)
     return render(request, 'reservationsapp/edit_passager.html', {'form': form})
