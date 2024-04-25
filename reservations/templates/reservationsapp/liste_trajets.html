@@ -1,20 +1,19 @@
 {% extends 'reservationsapp/base.html' %}
 
-{% block title %}Liste des trajets{% endblock %}
-
 {% block content %}
-    <div class="container pt-2 my-2 bg-primary text-white">
-    <h1>Liste des trajets</h1>
-    </div>
-      
+<h1>Liste des trajets</h1>
+<form method="get">
+    {{ form.as_p }}
+    <button type="submit">Filtrer les trajets</button>
+</form>
+
+<div>
     <h2>Trajets disponibles</h2>
-    <form method="get">
-        {{ form.as_p }}
-        <button type="submit">Filtrer les trajets</button>
-    </form>
-    <ul>
-        {% for trajet in trajets %}
-            <li>Trajet de <b>{{ trajet.depgare }}</b> à {{ trajet.arrgare }} - Départ le <b>{{ trajet.depdh|date:"j F Y à H\hi" }}</b> - Arrivée le {{ trajet.arrdh|date:"j F Y à H\hi" }}.</li>
-        {% endfor %}
-    </ul>
+    {% for trajet in page_obj %}
+        <p>{{ trajet.depgare.ville }} {{ trajet.depgare.nomgare }} à {{ trajet.arrgare.ville }} {{ trajet.arrgare.nomgare }} - Départ : {{ trajet.depdh }}</p>
+    {% empty %}
+        <p>Aucun trajet disponible.</p>
+    {% endfor %}
+</div>
+<a href="{% url 'edit_reservation' %}">Nouvelle réservation</a>
 {% endblock %}

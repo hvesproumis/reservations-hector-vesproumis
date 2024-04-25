@@ -1,0 +1,17 @@
+{% extends 'reservationsapp/base.html' %}
+
+{% block title %}Créer une nouvelle réservation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Nouvelle réservation</h2>
+    <form method="post">
+        {% csrf_token %}
+        <h4>Client</h4>
+        {{ client_form.as_p }}
+        <h4>Détails de la réservation</h4>
+        {{ reservation_form.as_p }}
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+</div>
+{% endblock %}

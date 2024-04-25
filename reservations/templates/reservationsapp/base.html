@@ -24,6 +24,9 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'reservations' %}active{% endif %}" href="{% url 'reservations' %}">Mes Réservations</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'view_passagers' %}active{% endif %}" href="{% url 'view_passagers' %}">Mes passagers</a>
+                    </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}?next={{ request.path }}">Déconnexion</a>

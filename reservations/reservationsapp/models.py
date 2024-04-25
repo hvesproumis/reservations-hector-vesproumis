@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 
 def generate_if_number():
     import random
@@ -13,9 +14,9 @@ class Gare(models.Model):
         return f"{self.ville} {self.nomgare}"
 
 class Client(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
-    first_name = models.CharField(max_length=100, verbose_name="Prénom", default="Prénom")
-    last_name = models.CharField(max_length=100, verbose_name="Nom", default="Prénom")
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='client')
+    first_name = models.CharField(max_length=100, verbose_name="Prénom")
+    last_name = models.CharField(max_length=100, verbose_name="Nom")
     email = models.EmailField(verbose_name="Email")
     address = models.CharField(max_length=255, verbose_name="Adresse")
 
@@ -24,10 +25,10 @@ class Client(models.Model):
     
 
 class Passager(models.Model):
-    first_name = models.CharField(max_length=100, verbose_name="Prénom", default="Prénom")
-    last_name = models.CharField(max_length=100, verbose_name="Nom", default="Nom")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='passagers')
+    first_name = models.CharField(max_length=100, verbose_name="Prénom")
+    last_name = models.CharField(max_length=100, verbose_name="Nom")
     date_of_birth = models.DateField(verbose_name="Date de naissance", null=True, blank=True)
-
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     
@@ -45,7 +46,7 @@ class Reservation(models.Model):
     seat_number = models.IntegerField(default=1, verbose_name="Numéro de place")
     car_number = models.IntegerField(default=1, verbose_name="Numéro de voiture")
     trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE, related_name='reservations', verbose_name="Trajet")
-    passager = models.ForeignKey(Passager, on_delete=models.CASCADE, related_name='reservations', verbose_name="Passager")
+    passager = models.ForeignKey(Passager, on_delete=models.PROTECT, related_name='reservations', verbose_name="Passager")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='reservations', verbose_name="Client")
 
     def __str__(self):

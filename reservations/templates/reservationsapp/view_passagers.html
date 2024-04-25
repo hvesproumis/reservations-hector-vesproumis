@@ -1,0 +1,33 @@
+{% extends 'reservationsapp/base.html' %}
+
+{% block content %}
+<h2>Mes Passagers</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Date de Naissance</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for passager in passagers %}
+        <tr>
+            <td>{{ passager.first_name }}</td>
+            <td>{{ passager.last_name }}</td>
+            <td>{{ passager.date_of_birth|date:"d M Y" }}</td>
+            <td>
+                <a href="{% url 'edit_passager' passager.id %}">Éditer</a> | 
+                <a href="{% url 'delete_passager' passager.id %}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce passager ? Cette action est irréversible.');">Supprimer</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Aucun passager trouvé.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'create_passager' %}">Ajouter un nouveau passager</a>
+{% endblock %}
