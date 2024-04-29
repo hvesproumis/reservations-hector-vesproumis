@@ -48,7 +48,7 @@ class Journey(models.Model):
 class Reservation(models.Model):
     dateresa = models.DateField(auto_now_add=True, verbose_name="Date de la réservation")
     if_number = models.CharField(max_length=6, default=generate_if_number, unique=True, verbose_name="Numéro de la réservation")
-    trajet = models.ManyToManyField(Trajet, on_delete=models.CASCADE, related_name='reservations', verbose_name="Trajet")
+    trajet = models.ManyToManyField(Trajet, related_name='reservations', verbose_name="Trajet")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='reservations', verbose_name="Client")
     
     def __str__(self):
