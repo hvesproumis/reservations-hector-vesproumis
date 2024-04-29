@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from reservationsapp import views
 from django.contrib.auth import views as auth_views
-from reservationsapp.views import get_passager_details, create_passager, view_passagers, edit_passager, delete_passager, signup, update_profile, account
+from reservationsapp.views import get_passager_details, create_passager, view_passagers, edit_passager, delete_passager, signup, update_profile, account, collaborator, advanced_search
 
 
 urlpatterns = [
@@ -23,4 +23,6 @@ urlpatterns = [
     path('edit-passager/<int:passager_id>/', edit_passager, name='edit_passager'),
     path('delete-passager/<int:passager_id>/', delete_passager, name='delete_passager'),
     path('api/passagers/<int:passager_id>/', get_passager_details, name='get_passager_details'),
+    path('api/advanced-search/', advanced_search, name='advanced_search'),
+    path('collaborator/', collaborator, name='collaborator'),
 ]
