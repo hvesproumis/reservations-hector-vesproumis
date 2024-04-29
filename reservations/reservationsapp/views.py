@@ -1,11 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Trajet, Client, Reservation, Passager
+from .models import Route, Client, Reservation, Passager, Journey
 from .forms import TrajetSearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory
 from django.db import transaction
+from django.db.models import Count, F
+from django.db.models.functions import TruncDate
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -175,3 +178,35 @@ def delete_passager(request, passager_id):
         passager.delete()
         messages.success(request, "Passager supprimé avec succès.")
     return redirect('reservationsapp/view_passagers.html')
+
+#Staff view linked to stats view template only accessible to staff members
+@staff_member_required
+def collaborator(request):
+    return render(request, 'admin/statistic_view.html')
+
+#For staff, data on reservations
+@staff_member_required
+def number_of_reservation(request):
+     # Count reservations for a spec date
+    reservations_by_date = Reservation.objects.annotate(
+        date=TruncDate('journey__depdh')
+    ).values('date').annotate(count=Count('id')).order_by('date')
+
+    # Count reservations for a spec route
+    reservations_by_route = Reservation.objects.annotate(
+        route=F('journey__route'),
+        depgare=F('journey__depgare'),
+        arrgare=F('journey__arrgare')
+    ).values('route', 'depgare', 'arrgare').annotate(count=Count('id')).order_by('route')
+
+    # Data for answer
+    data_by_date = {res['date'].strftime("%Y-%m-%d"): res['count'] for res in reservations_by_date}
+    data_by_route = {f"{res['depgare']} à {res['arrgare']}": res['count'] for res in reservations_by_route}
+
+    # To sets of data in one
+    data = {
+        'reservations_by_date': data_by_date,
+        'reservations_by_route': data_by_route
+    }
+
+    return JsonResponse(data)
