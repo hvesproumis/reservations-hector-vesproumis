@@ -7,5 +7,5 @@
 
 
 
-
+Adri's shite:
 #https://www.udacity.com/blog/2021/10/implementing-dijkstras-algorithm-in-python.html
