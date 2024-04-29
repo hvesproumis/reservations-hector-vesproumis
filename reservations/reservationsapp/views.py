@@ -4,11 +4,12 @@ from .forms import TrajetSearchForm, ReservationForm, ClientForm, PassagerForm, 
 from django.conf import settings
 from django.forms import formset_factory
 from django.db import transaction
-from django.db.models import Count, F
+from django.db.models import Count, F, Sum, Q
 from django.db.models.functions import TruncDate
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -185,28 +186,56 @@ def collaborator(request):
     return render(request, 'admin/statistic_view.html')
 
 #For staff, data on reservations
+
 @staff_member_required
-def number_of_reservation(request):
-     # Count reservations for a spec date
-    reservations_by_date = Reservation.objects.annotate(
-        date=TruncDate('journey__depdh')
-    ).values('date').annotate(count=Count('id')).order_by('date')
+@require_http_methods(["GET"])
+def advanced_search(request):
+    # Récupérer les paramètres de la requête
+    type_search = request.GET.get('type')
+    keyword = request.GET.get('keyword')
 
-    # Count reservations for a spec route
-    reservations_by_route = Reservation.objects.annotate(
-        route=F('journey__route'),
-        depgare=F('journey__depgare'),
-        arrgare=F('journey__arrgare')
-    ).values('route', 'depgare', 'arrgare').annotate(count=Count('id')).order_by('route')
+    if type_search == 'reservations_by_day':
+        # Nombre de réservations par jour
+        data = Reservation.objects.annotate(day=TruncDay('journey__depdh')).values('day').annotate(count=Count('id')).order_by('day')
 
-    # Data for answer
-    data_by_date = {res['date'].strftime("%Y-%m-%d"): res['count'] for res in reservations_by_date}
-    data_by_route = {f"{res['depgare']} à {res['arrgare']}": res['count'] for res in reservations_by_route}
+    elif type_search == 'reservations_by_route':
+        # Nombre de réservations par trajet
+        data = Reservation.objects.filter(journey__route=keyword).values('journey__route').annotate(count=Count('id')).order_by('journey__route')
 
-    # To sets of data in one
-    data = {
-        'reservations_by_date': data_by_date,
-        'reservations_by_route': data_by_route
-    }
+    elif type_search == 'list_reservations':
+        # Liste des réservations pour une gare de départ ou d'arrivée
+        data = Reservation.objects.filter(Q(journey__depgare=keyword) | Q(journey__arrgare=keyword)).annotate(total_passengers=Sum('passenger_count'))
 
-    return JsonResponse(data)
+    elif type_search == 'list_passengers':
+        # Liste des passagers pour un trajet
+        data = Passenger.objects.filter(journey__route=keyword).values('name', 'journey__route')
+
+    elif type_search == 'occupancy_rate':
+        # Taux de remplissage d'un trajet
+        data = Reservation.objects.filter(journey__route=keyword).aggregate(occupancy_rate=Sum('passenger_count') / 500 * 100)
+
+    elif type_search == 'station_frequency':
+        # Taux de fréquentation d'une gare
+        data = Reservation.objects.filter(Q(journey__depgare=keyword) | Q(journey__arrgare=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
+
+    else:
+        data = {"error": "Invalid search type"}
+
+    return JsonResponse(list(data), safe=False)
+
+#Pour info, utiliser l'API : 
+#function performSearch(typeSearch, keyword) {
+#    let url = new URL('/api/advanced-search/', window.location.origin);
+#    url.searchParams.append('type', typeSearch);
+#    url.searchParams.append('keyword', keyword);
+#
+#    fetch(url)
+#    .then(response => response.json())
+#    .then(data => {
+#       console.log(data); // Traiter et afficher les données
+#    })
+#    .catch(error => console.error('Error fetching data:', error));
+#}
+#
+#// Exemple d'utilisation
+#performSearch('reservations_by_day', '2023-09-01');
