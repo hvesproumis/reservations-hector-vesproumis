@@ -85,19 +85,44 @@ class Journey(models.Model):
     def __str__(self):
         return f"Trajet de {self.route.departure_station} à {self.route.arrival_station} le {self.departure_date_time.strftime('%Y-%m-%d %H:%M')} - Arrivée le {self.arrival_date_time.strftime('%Y-%m-%d %H:%M')}"
 
+
+class Journey(models.Model):
+    ...
+
 class Reservation(models.Model):
     dateresa = models.DateField(auto_now_add=True, verbose_name="Date de la réservation")
     if_number = models.CharField(max_length=6, default=generate_if_number, unique=True, verbose_name="Numéro de la réservation")
-    seat_number = models.IntegerField(blank=True, null=True, verbose_name="Numéro de place")
-    car_number = models.IntegerField(blank=True, null=True, verbose_name="Numéro de voiture")
-    trajet = models.ForeignKey(Trajet, on_delete=models.CASCADE, related_name='reservations', verbose_name="Trajet")
-    passager = models.ForeignKey(Passager, on_delete=models.PROTECT, related_name='reservations', verbose_name="Passager")
+    trajet = models.ManyToManyField(Trajet, related_name='reservations', verbose_name="Trajet")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='reservations', verbose_name="Client")
+    
+    def __str__(self):
+        return f"Réservation {self.if_number} pour {self.client.user.first_name} {self.client.user.last_name}"
+
+
+class Ticket(models.Model):
+    """
+    A model to link a passenger to a specific journey, in a specific reservation.
+
+    Fields:
+        if_number (Char): An id of the ticket
+        passenger (Passager) : The passenger on the ticket
+        car_number (Integer) : The train car the passenger is in
+        seat (Integer) : The seat the passenger is in
+        journey (Journey) : The journey the passenger travels
+        reservation (Reservation) : The reservation that generated the ticket        
+    """
+    if_number = models.CharField(max_length=6, default=generate_if_number, unique=True, verbose_name="Numéro du ticket")
+    passenger = models.ForeignKey(Passager, on_delete=models.PROTECT, related_name='tickets', verbose_name="Passager")
+    car_number = models.IntegerField(blank=True, null=True, verbose_name="Numéro de voiture")
+    seat = models.IntegerField(blank=True, null=True, verbose_name="Numéro de place")
+    journey = models.ForeignKey(Journey, on_delete=models.CASCADE, related_name='tickets', verbose_name="Trajet")
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='tickets', verbose_name="Réservation")
     
     def save(self, *args, **kwargs):
         if not self.pk:  
             self.seat_number = random.randint(1, 120)
             self.car_number = random.randint(1, 14)
-        super(Reservation, self).save(*args, **kwargs)
+        super(Ticket, self).save(*args, **kwargs)
+    
     def __str__(self):
-        return f"Réservation {self.if_number} pour {self.passager.first_name} {self.passager.last_name}"
+        return f"Billet {self.if_number} pour {self.passenger.first_name} {self.passenger.last_name}"
