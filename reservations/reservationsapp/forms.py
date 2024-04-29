@@ -56,23 +56,25 @@ from .models import Reservation, Passager
 #Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):
-    existing_passager = forms.ModelChoiceField(
-        queryset=Passager.objects.none(), label="Sélectionner un passager pré-enregistré",
-        empty_label="Sélectionnez", widget=forms.Select(attrs={'class': 'form-control'})
+    passengers = forms.ModelMultipleChoiceField(
+        queryset=Passager.objects.none(),
+        label="Sélectionner des passagers pré-enregistrés",
+        empty_label="Sélectionnez",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     class Meta:
         model = Reservation
-        fields = ['trajet', 'existing_passager'] 
+        fields = ['journeys'] 
         widgets = {
-            'trajet': forms.Select(attrs={'class': 'form-control'}),
+            'journeys': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(ReservationForm, self).__init__(*args, **kwargs)
         if user:
-            self.fields['existing_passager'].queryset = Passager.objects.filter(user=user)
+            self.fields['passengers'].queryset = Passager.objects.filter(user=user)
 
 
 #Formulaire passager
