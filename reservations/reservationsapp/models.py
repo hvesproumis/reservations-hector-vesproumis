@@ -90,7 +90,7 @@ class Journey(models.Model):
 class Reservation(models.Model):
     reservation_date = models.DateField(auto_now_add=True, verbose_name="Date de la réservation")
     if_number = models.CharField(max_length=6, default=generate_if_number, unique=True, verbose_name="Numéro de la réservation")
-    journey = models.ManyToManyField(Journey, related_name='reservations', verbose_name="Trajet")
+    journeys = models.ManyToManyField(Journey, related_name='reservations', verbose_name="Trajet")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='reservations', verbose_name="Client")
     
     def __str__(self):
