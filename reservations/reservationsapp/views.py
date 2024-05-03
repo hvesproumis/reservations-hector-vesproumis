@@ -5,7 +5,7 @@ from django.conf import settings
 from django.forms import formset_factory
 from django.db import transaction
 from django.db.models import Count, F, Sum, Q
-from django.db.models.functions import TruncDate
+from django.db.models.functions import TruncDay
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -51,17 +51,18 @@ def update_profile(request):
 
 def trajets(request):
     form = TrajetSearchForm(request.GET or None)
-    tous_les_trajets = Trajet.objects.all().order_by('depdh')
+    routes = Route.objects.all()
 
     if form.is_valid():
-        choix = form.cleaned_data['choix']
-        gare = form.cleaned_data['gare']
-        if choix == 'depart':
-            tous_les_trajets = tous_les_trajets.filter(depgare=gare)
-        elif choix == 'arrivee':
-            tous_les_trajets = tous_les_trajets.filter(arrgare=gare)
+        choice = form.cleaned_data['choice']
+        station = form.cleaned_data['station']
+        if choice == 'depart':
+            routes = routes.filter(departure_station=station)
+        elif choice == 'arrivee':
+            routes = routes.filter(arrival_station=station)
+        journeys = Journey.objects.filter(route__in=routes).order_by('departure_date_time')
 
-    paginator = Paginator(tous_les_trajets, 10)
+    paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -196,7 +197,7 @@ def advanced_search(request):
 
     if type_search == 'reservations_by_day':
         # Nombre de réservations par jour
-        data = Reservation.objects.annotate(day=TruncDate('journey__depdh')).values('day').annotate(count=Count('id')).order_by('day')
+        data = Reservation.objects.annotate(day=TruncDay('journey__departure_date_time')).values('day').annotate(count=Count('id')).order_by('day')
 
     elif type_search == 'reservations_by_route':
         # Nombre de réservations par trajet
@@ -208,7 +209,7 @@ def advanced_search(request):
 
     elif type_search == 'list_passengers':
         # Liste des passagers pour un trajet
-        data = Passenger.objects.filter(journey__route=keyword).values('name', 'journey__route')
+        data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
 
     elif type_search == 'occupancy_rate':
         # Taux de remplissage d'un trajet

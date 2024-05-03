@@ -47,8 +47,8 @@ class UserUpdateForm(forms.ModelForm):
 #Gestion de la recherche trajet
 
 class TrajetSearchForm(forms.Form):
-    gare = forms.ModelChoiceField(queryset=Gare.objects.all(), required=False, label="Choisir une gare")
-    choix = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
+    station = forms.ModelChoiceField(queryset=Gare.objects.all(), required=False, label="Choisir une gare")
+    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
 
 from django import forms
 from .models import Reservation, Passager
