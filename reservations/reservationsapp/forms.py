@@ -58,7 +58,7 @@ from .models import Reservation, Passager
 class ReservationForm(forms.ModelForm):
     passengers = forms.ModelMultipleChoiceField(
         queryset=Passager.objects.none(),
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.CheckboxSelectMultiple,
     )
 
     class Meta:
