@@ -195,12 +195,12 @@ def edit_passager(request, passager_id):
 @login_required
 def delete_passager(request, passager_id):
     passager = get_object_or_404(Passager, id=passager_id, user=request.user)
-    if passager.reservations.exists():
+    if passager.tickets.exists():
         messages.error(request, "Ce passager est associé à des réservations et ne peut pas être supprimé.")
     else:
         passager.delete()
         messages.success(request, "Passager supprimé avec succès.")
-    return redirect('reservationsapp/view_passagers.html')
+    return redirect('reservations:view_passagers')
 
 #Staff view linked to stats view template only accessible to staff members
 @staff_member_required
