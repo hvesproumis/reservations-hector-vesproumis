@@ -65,7 +65,7 @@ class ReservationForm(forms.ModelForm):
         model = Reservation
         fields = ['journeys'] 
         widgets = {
-            'journeys': forms.Select(attrs={'class': 'form-control'}),
+            'journeys': forms.SelectMultiple(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):

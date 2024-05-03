@@ -122,7 +122,7 @@ def edit_reservation(request, if_number=None):
             
             passengers = reservation_form.cleaned_data['passengers']
             for passenger in passengers:
-                for journey in reservation.journeys:
+                for journey in reservation.journeys.all():
                     ticket = Ticket()
                     ticket.reservation = reservation
                     ticket.journey = journey
