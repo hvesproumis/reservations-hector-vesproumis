@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-
+from .algorithms import Graph
 #Utilisateur
 
 def signup(request):
@@ -50,6 +50,11 @@ def update_profile(request):
 #Trajets
 
 def trajets(request):
+    """
+        ->User can look for routes linked to a departure, arrival or both
+        ->if both departure and arrival provided, best options are filtered
+
+    """
     form = TrajetSearchForm(request.GET or None)
     tous_les_trajets = Trajet.objects.all().order_by('depdh')
 
@@ -61,10 +66,26 @@ def trajets(request):
         elif choix == 'arrivee':
             tous_les_trajets = tous_les_trajets.filter(arrgare=gare)
 
+    start_point = form.cleaned_data.get("depart")
+    end_point = form.cleaned_data.get("arrivee")
+    best_route = None
+
+    if start_point and end_point:  # Check that both points are provided
+        #Generate a distance graph
+        graph_distance = Graph("distance") #later include same but with cost etc.
+        graph_distance.generate_graph()
+
+        try:
+            # Solve for the best route (shortest path)
+            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
+        except Exception as e:
+            print(f"Error finding shortest path: {e}")
+
     paginator = Paginator(tous_les_trajets, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    if best_route:
+        return render(request, 'reservationsapp/liste_trajets.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
     return render(request, 'reservationsapp/liste_trajets.html', {'form': form, 'page_obj': page_obj})
 
 #Réservations
