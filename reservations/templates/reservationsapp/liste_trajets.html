@@ -42,10 +42,10 @@
 
     <div class="trajets-section">
         <h3>Trajets disponibles</h3>
-        {% for trajet in page_obj %}
+        {% for journey in page_obj %}
         <div class="card mb-2">
             <div class="card-body">
-                <p>{{ trajet.depgare.ville }} {{ trajet.depgare.nomgare }} à {{ trajet.arrgare.ville }} {{ trajet.arrgare.nomgare }} - Départ : {{ trajet.depdh|date:"d M Y H:i" }}</p>
+                <p>{{ journey.route.departure_station.city }} {{ journey.route.departure_station.station_name }} à {{ journey.route.arrival_station.city }} {{ journey.route.arrival_station.station_name }} - Départ : {{ journey.departure_date_time|date:"d M Y H:i" }}</p>
             </div>
         </div>
         {% empty %}
