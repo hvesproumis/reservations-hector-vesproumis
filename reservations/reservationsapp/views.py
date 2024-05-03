@@ -196,7 +196,7 @@ def advanced_search(request):
 
     if type_search == 'reservations_by_day':
         # Nombre de réservations par jour
-        data = Reservation.objects.annotate(day=TruncDay('journey__depdh')).values('day').annotate(count=Count('id')).order_by('day')
+        data = Reservation.objects.annotate(day=TruncDate('journey__depdh')).values('day').annotate(count=Count('id')).order_by('day')
 
     elif type_search == 'reservations_by_route':
         # Nombre de réservations par trajet
