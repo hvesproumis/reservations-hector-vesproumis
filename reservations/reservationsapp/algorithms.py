@@ -15,15 +15,24 @@ class Graph():
             To price, distance and potentially time, we can then output a range of solutions
 
     """
-    def __init__(self, graph_edge_type):
+    def __init__(self, graph_edge_type,start_point,end_point):
         """
             Initialise graph with stations, routes and weights or edges
+            Clean all the arcs that are infeasible within the specified time window etc.
+            ->instead of passing through the routes, go by journeys given they're associated with routes
+            ->specify the edge type to see what weight to associate to graph
+            ->start_point / end_point required for the efficient creation of a cleaner graph
+            
         """
         self.stations = Gare.objects.all()
-        self.journeys = Journey.objects.all()
+        self.journeys = Journey.objects.all() #route obj with times
         self.routes = Route.objects.all()
         self.G = nx.DiGraph()
+        
         self.edges = defaultdict(dict) # avoids key errors #stored as dic of dics, key1 = depart, key2 = arrival, value = weight
+        self.edges_time_cleaned = defaultdict(dict) #will be the one storing the removed infeasible arcs
+        
+
         try:
             #adding edges depending on distance, cost etc.
             if graph_edge_type == "distance":
