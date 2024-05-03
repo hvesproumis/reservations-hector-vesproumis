@@ -88,7 +88,13 @@ def reservation_detail(request, if_number):
     else:
         reservation = get_object_or_404(Reservation, if_number=if_number, client__user=request.user)
 
-    return render(request, 'reservationsapp/reservation_detail.html', {'reservation': reservation})
+    tickets = Ticket.objects.all().filter(reservation=reservation).order_by("if_number")
+    context = {
+        'reservation' : reservation,
+        'tickets' : tickets,
+    }
+    
+    return render(request, 'reservationsapp/reservation_detail.html', context=context)
 
 @login_required
 def edit_reservation(request, if_number=None):
@@ -114,14 +120,22 @@ def edit_reservation(request, if_number=None):
 
     if request.method == 'POST':
         if client_form.is_valid() and reservation_form.is_valid():
+            print(reservation_form.cleaned_data)
             client = client_form.save()  
             reservation = reservation_form.save(commit=False)
             reservation.client = client  
+            print(reservation.journeys.exists())
             reservation.save()
             
+            # Delete existing tickets before creating new ones
+            tickets = Ticket.objects.all().filter(reservation=reservation)
+            for ticket in tickets:
+                ticket.delete()
+            
             passengers = reservation_form.cleaned_data['passengers']
+            journeys = reservation_form.cleaned_data['journeys']
             for passenger in passengers:
-                for journey in reservation.journeys.all():
+                for journey in journeys:
                     ticket = Ticket()
                     ticket.reservation = reservation
                     ticket.journey = journey
