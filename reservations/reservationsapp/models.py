@@ -114,15 +114,15 @@ class Ticket(models.Model):
     """
     if_number = models.CharField(max_length=6, default=generate_if_number, unique=True, verbose_name="Numéro du ticket")
     passenger = models.ForeignKey(Passager, on_delete=models.PROTECT, related_name='tickets', verbose_name="Passager")
-    car_number = models.IntegerField(blank=True, null=True, verbose_name="Numéro de voiture")
+    car = models.IntegerField(blank=True, null=True, verbose_name="Numéro de voiture")
     seat = models.IntegerField(blank=True, null=True, verbose_name="Numéro de place")
     journey = models.ForeignKey(Journey, on_delete=models.CASCADE, related_name='tickets', verbose_name="Trajet")
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='tickets', verbose_name="Réservation")
     
     def save(self, *args, **kwargs):
         if not self.pk:  
-            self.seat_number = random.randint(1, 120)
-            self.car_number = random.randint(1, 14)
+            self.seat = random.randint(1, 120)
+            self.car = random.randint(1, 14)
         super(Ticket, self).save(*args, **kwargs)
     
     def __str__(self):
