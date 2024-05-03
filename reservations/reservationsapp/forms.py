@@ -1,5 +1,5 @@
 from django import forms
-from .models import Gare, Reservation, Trajet, Passager, Client
+from .models import Gare, Reservation, Journey, Passager, Client
 from django.forms import ModelForm, inlineformset_factory
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
