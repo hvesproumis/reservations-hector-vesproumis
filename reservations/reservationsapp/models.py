@@ -71,6 +71,9 @@ class Route(models.Model):
 
         return acos(sin(lat1_rad)*sin(lat2_rad)+cos(lat1_rad)*cos(lat2_rad)*cos(long2_rad-long1_rad))*6371
     distance = property(get_distance)
+    
+    def __str__(self):
+        return f"{self.departure_station} - {self.arrival_station}"
 
 class Journey(models.Model):
     """
