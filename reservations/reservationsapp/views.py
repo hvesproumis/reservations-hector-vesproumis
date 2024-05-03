@@ -53,6 +53,7 @@ def update_profile(request):
 def trajets(request):
     form = TrajetSearchForm(request.GET or None)
     routes = Route.objects.all()
+    journeys = Journey.objects.all().order_by('departure_date_time')
 
     if form.is_valid():
         choice = form.cleaned_data['choice']
@@ -61,7 +62,7 @@ def trajets(request):
             routes = routes.filter(departure_station=station)
         elif choice == 'arrivee':
             routes = routes.filter(arrival_station=station)
-        journeys = Journey.objects.filter(route__in=routes).order_by('departure_date_time')
+        journeys = journeys.filter(route__in=routes)
 
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
