@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Route, Client, Reservation, Passager, Journey
+from .models import Route, Client, Reservation, Passager, Journey, Ticket
 from .forms import TrajetSearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory
@@ -116,8 +116,16 @@ def edit_reservation(request, if_number=None):
             client = client_form.save()  
             reservation = reservation_form.save(commit=False)
             reservation.client = client  
-            reservation.passager = reservation_form.cleaned_data['existing_passager']
             reservation.save()
+            
+            passengers = reservation_form.cleaned_data['passengers']
+            for passenger in passengers:
+                for journey in reservation.journeys:
+                    ticket = Ticket()
+                    ticket.reservation = reservation
+                    ticket.journey = journey
+                    ticket.passenger = passenger
+                    ticket.save()
             return redirect('reservation_detail', if_number=reservation.if_number)
 
     return render(request, template_name, {
