@@ -1,8 +1,9 @@
 from django import forms
-from .models import Gare, Reservation, Trajet, Passager, Client
-from django.forms import ModelForm, inlineformset_factory
+from .models import Gare, Reservation, Passager, Client
+from django.forms import ModelForm, inlineformset_factory, ModelMultipleChoiceField, SelectMultiple
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+
 
 
 #Gestion du client
@@ -46,28 +47,24 @@ class UserUpdateForm(forms.ModelForm):
 
 #Gestion de la recherche trajet
 
-class TrajetSearchForm(forms.Form):
+class JourneySearchForm(forms.Form):
     gare = forms.ModelChoiceField(queryset=Gare.objects.all(), required=False, label="Choisir une gare")
     choix = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
-
-from django import forms
-from .models import Reservation, Passager
 
 #Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):
     passengers = forms.ModelMultipleChoiceField(
-        queryset=Passager.objects.none(),
+        queryset=Passager.objects.none(),  # Make sure this queryset is properly set up in the __init__ method.
         label="Sélectionner des passagers pré-enregistrés",
-        empty_label="Sélectionnez",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
     )
 
     class Meta:
         model = Reservation
         fields = ['journeys'] 
         widgets = {
-            'journeys': forms.Select(attrs={'class': 'form-control'}),
+            'journeys': forms.SelectMultiple(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -75,6 +72,8 @@ class ReservationForm(forms.ModelForm):
         super(ReservationForm, self).__init__(*args, **kwargs)
         if user:
             self.fields['passengers'].queryset = Passager.objects.filter(user=user)
+            # Ensure that 'journeys' queryset is also set if needed
+            self.fields['journeys'].queryset = Journey.objects.all()  # Adjust as necessary for your business logic
 
 
 #Formulaire passager

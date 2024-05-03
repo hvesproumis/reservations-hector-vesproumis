@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Route, Client, Reservation, Passager, Journey
-from .forms import TrajetSearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
+from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory
 from django.db import transaction
@@ -49,30 +49,31 @@ def update_profile(request):
 
 #Trajets
 
-def trajets(request):
-    form = TrajetSearchForm(request.GET or None)
-    tous_les_trajets = Trajet.objects.all().order_by('depdh')
+def journeys(request):
+    form = JourneySearchForm(request.GET or None)
+    all_journeys = Journey.objects.select_related('route').all().order_by('departure_date_time')
 
     if form.is_valid():
         choix = form.cleaned_data['choix']
         gare = form.cleaned_data['gare']
         if choix == 'depart':
-            tous_les_trajets = tous_les_trajets.filter(depgare=gare)
+            all_journeys = all_journeys.filter(route__departure_station=gare)
         elif choix == 'arrivee':
-            tous_les_trajets = tous_les_trajets.filter(arrgare=gare)
+            all_journeys = all_journeys.filter(route__arrival_station=gare)
 
-    paginator = Paginator(tous_les_trajets, 10)
+    paginator = Paginator(all_journeys, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'reservationsapp/liste_trajets.html', {'form': form, 'page_obj': page_obj})
+    return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj})
 
 #Réservations
 
 @login_required
 def reservations(request):
     if request.user.is_staff:
-        toutes_les_reservations = Reservation.objects.all()
+        toutes_les_reservations = Reservation.objects.select_related('client').prefetch_related('journeys')
+
     else:
         toutes_les_reservations = Reservation.objects.filter(client__user=request.user)
     
@@ -196,7 +197,7 @@ def advanced_search(request):
 
     if type_search == 'reservations_by_day':
         # Nombre de réservations par jour
-        data = Reservation.objects.annotate(day=TruncDay('journey__depdh')).values('day').annotate(count=Count('id')).order_by('day')
+        data = Reservation.objects.annotate(day=TruncDay('journey__departure_date_time')).values('day').annotate(count=Count('id')).order_by('day')
 
     elif type_search == 'reservations_by_route':
         # Nombre de réservations par trajet
@@ -204,7 +205,7 @@ def advanced_search(request):
 
     elif type_search == 'list_reservations':
         # Liste des réservations pour une gare de départ ou d'arrivée
-        data = Reservation.objects.filter(Q(journey__depgare=keyword) | Q(journey__arrgare=keyword)).annotate(total_passengers=Sum('passenger_count'))
+        data = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count'))
 
     elif type_search == 'list_passengers':
         # Liste des passagers pour un trajet
@@ -216,7 +217,7 @@ def advanced_search(request):
 
     elif type_search == 'station_frequency':
         # Taux de fréquentation d'une gare
-        data = Reservation.objects.filter(Q(journey__depgare=keyword) | Q(journey__arrgare=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
+        data = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
 
     else:
         data = {"error": "Invalid search type"}

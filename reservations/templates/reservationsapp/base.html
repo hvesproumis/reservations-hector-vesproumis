@@ -12,7 +12,7 @@
 <div class="container pt-10">
     <nav class="navbar">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'trajets' %}">France Rail</a>
+            <a class="navbar-brand" href="{% url 'journeys' %}">France Rail</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="modal" data-bs-target="#navbarModal">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -29,7 +29,7 @@
                 </div>
                 <div class="modal-body d-flex flex-column justify-content-center">
                     <div class="navbar-nav text-center">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'trajets' %}active{% endif %}" href="{% url 'trajets' %}">Voyager</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'journeys' %}active{% endif %}" href="{% url 'journeys' %}">Voyager</a>
                         <a class="nav-link {% if request.resolver_match.url_name == 'create_reservation' %}active{% endif %}" href="{% url 'create_reservation' %}">Réserver un voyage</a>
                         <a class="nav-link {% if request.resolver_match.url_name == 'reservations' %}active{% endif %}" href="{% url 'reservations' %}">Mes futurs voyages</a>
                         <a class="nav-link {% if request.resolver_match.url_name == 'view_passagers' %}active{% endif %}" href="{% url 'view_passagers' %}">Mes passagers</a>
