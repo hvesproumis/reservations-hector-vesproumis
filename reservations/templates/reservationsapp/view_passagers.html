@@ -39,8 +39,8 @@
             <td>{{ passager.last_name }}</td>
             <td>{{ passager.date_of_birth|date:"d M Y" }}</td>
             <td>
-                <a href="{% url 'edit_passager' passager.id %}" class="btn btn-warning">Éditer</a> | 
-                <a href="{% url 'delete_passager' passager.id %}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce passager ? Cette action est irréversible.');">Supprimer</a>
+                <a href="{% url 'reservations:edit_passager' passager.id %}" class="btn btn-warning">Éditer</a> | 
+                <a href="{% url 'reservations:delete_passager' passager.id %}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce passager ? Cette action est irréversible.');">Supprimer</a>
             </td>
         </tr>
         {% empty %}
@@ -51,5 +51,5 @@
     </tbody>
 </table>
 </div>
-<a href="{% url 'create_passager' %}" class="btn btn-primary">Ajouter un nouveau passager</a>
+<a href="{% url 'reservations:create_passager' %}" class="btn btn-primary">Ajouter un nouveau passager</a>
 {% endblock %}

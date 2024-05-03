@@ -120,11 +120,9 @@ def edit_reservation(request, if_number=None):
 
     if request.method == 'POST':
         if client_form.is_valid() and reservation_form.is_valid():
-            print(reservation_form.cleaned_data)
             client = client_form.save()  
             reservation = reservation_form.save(commit=False)
             reservation.client = client  
-            print(reservation.journeys.exists())
             reservation.save()
             
             # Delete existing tickets before creating new ones
@@ -141,7 +139,7 @@ def edit_reservation(request, if_number=None):
                     ticket.journey = journey
                     ticket.passenger = passenger
                     ticket.save()
-            return redirect('reservation_detail', if_number=reservation.if_number)
+            return redirect('reservations:reservation_detail', if_number=reservation.if_number)
 
     return render(request, template_name, {
         'client_form': client_form,
@@ -172,7 +170,7 @@ def create_passager(request):
             passager = form.save(commit=False)
             passager.user = request.user 
             passager.save()
-            return redirect('view_passagers')
+            return redirect('reservations:view_passagers')
     else:
         form = PassagerForm()
     return render(request, 'reservationsapp/create_passager.html', {'form': form})
@@ -189,7 +187,7 @@ def edit_passager(request, passager_id):
         form = PassagerForm(request.POST, instance=passager)
         if form.is_valid():
             form.save()
-            return redirect('view_passagers')
+            return redirect('reservations:view_passagers')
     else:
         form = PassagerForm(instance=passager)
     return render(request, 'reservationsapp/edit_passager.html', {'form': form})

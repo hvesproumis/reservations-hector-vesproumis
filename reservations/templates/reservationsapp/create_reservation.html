@@ -13,7 +13,7 @@
         </div>
         <h4>Détails de la réservation</h4>
         {{ reservation_form.as_p }}
-        <p>Si vous n'avez enregistré aucun passager • <a href="{% url 'create_passager' %}"class="btn btn-primary">cliquez ici</a></p>
+        <p>Si vous n'avez enregistré aucun passager • <a href="{% url 'reservations:create_passager' %}"class="btn btn-primary">cliquez ici</a></p>
         <button type="submit" class="btn btn-success">Enregistrer</button>
     </form>
 </div>

@@ -21,8 +21,8 @@
     <ul style="padding-left: 0;"> 
         {% for reservation in reservations %}
             <li class="reservation-item">
-                Réservation <a href="{% url 'reservation_detail' reservation.if_number %}" class="reservation-link">{{ reservation.if_number }}</a> pour {{ reservation.passager.first_name }} {{ reservation.passager.last_name }} sur le trajet de {{ reservation.trajet.depgare.ville }} - {{ reservation.trajet.depgare.nomgare }} à {{ reservation.trajet.arrgare.ville }} - {{ reservation.trajet.arrgare.nomgare }} le {{ reservation.trajet.depdh|date:"j F Y à H:i" }}.
-                <a href="{% url 'edit_reservation' reservation.if_number %}" class="btn btn-warning edit-btn">Éditer</a>
+                Réservation <a href="{% url 'reservations:reservation_detail' reservation.if_number %}" class="reservation-link">{{ reservation.if_number }}</a> pour {{ reservation.passager.first_name }} {{ reservation.passager.last_name }} sur le trajet de {{ reservation.trajet.depgare.ville }} - {{ reservation.trajet.depgare.nomgare }} à {{ reservation.trajet.arrgare.ville }} - {{ reservation.trajet.arrgare.nomgare }} le {{ reservation.trajet.depdh|date:"j F Y à H:i" }}.
+                <a href="{% url 'reservations:edit_reservation' reservation.if_number %}" class="btn btn-warning edit-btn">Éditer</a>
             </li>
         {% endfor %}
     </ul>

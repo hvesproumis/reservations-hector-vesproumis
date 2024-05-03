@@ -20,7 +20,7 @@
         <p class="info-item"><strong>Prénom :</strong> {{ user.first_name }}</p>
         <p class="info-item"><strong>Nom :</strong> {{ user.last_name }}</p>
         <p class="info-item"><strong>E-mail :</strong> {{ user.email }}</p>
-        <a href="{% url 'update_profile' %}" class="btn btn-primary">Modifier mes informations</a>
+        <a href="{% url 'reservations:update_profile' %}" class="btn btn-primary">Modifier mes informations</a>
     </div>
 </div>
 {% endblock %}
