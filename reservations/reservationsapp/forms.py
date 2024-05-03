@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
 
+
 #Gestion du client
 
 class ClientForm(ModelForm):
@@ -46,19 +47,17 @@ class UserUpdateForm(forms.ModelForm):
 
 #Gestion de la recherche trajet
 
-class TrajetSearchForm(forms.Form):
+class JourneySearchForm(forms.Form):
     station = forms.ModelChoiceField(queryset=Gare.objects.all(), required=False, label="Choisir une gare")
     choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
-
-from django import forms
-from .models import Reservation, Passager
 
 #Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):
     passengers = forms.ModelMultipleChoiceField(
-        queryset=Passager.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
+        queryset=Passager.objects.none(),  # Make sure this queryset is properly set up in the __init__ method.
+        label="Sélectionner des passagers pré-enregistrés",
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
     )
 
     class Meta:
@@ -73,6 +72,8 @@ class ReservationForm(forms.ModelForm):
         super(ReservationForm, self).__init__(*args, **kwargs)
         if user:
             self.fields['passengers'].queryset = Passager.objects.filter(user=user)
+            # Ensure that 'journeys' queryset is also set if needed
+            self.fields['journeys'].queryset = Journey.objects.all()  # Adjust as necessary for your business logic
 
 
 #Formulaire passager
