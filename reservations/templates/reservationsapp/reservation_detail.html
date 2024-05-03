@@ -8,15 +8,50 @@
 </div>
 
 <div class="container pt-2 my-2">
-    <p><b>Numéro de réservation :</b> {{ reservation.if_number }}</p>
-    <p><b>Prénom et nom du passager :</b> {{ reservation.passager.first_name }} {{ reservation.passager.last_name }}</p>
+    <p><b>Numéro de réservation :</b> {{ reservation.if_number }}</p> 
     <p><b>Prénom et nom pour la facturation :</b> {{ reservation.client.first_name }} {{ reservation.client.last_name }}</p>
-    <p><b>Date de la réservation :</b> {{ reservation.dateresa|date:"d-m-Y" }}</p>
-    <p><b>Ville et gare de départ :</b> {{ reservation.trajet.depgare.ville }} - {{ reservation.trajet.depgare.nomgare }}</p>
-    <p><b>Ville et gare d'arrivée :</b> {{ reservation.trajet.arrgare.ville }} - {{ reservation.trajet.arrgare.nomgare }}</p>
-    <p><b>Date et heure du trajet :</b> {{ reservation.trajet.depdh|date:"d-m-Y H:i" }} - {{ reservation.trajet.arrdh|date:"d-m-Y H:i" }}</p>
-    <p><b>Voiture :</b> {{ reservation.car_number }}</p>
-    <p><b>Place :</b> {{ reservation.seat_number }}</p>
+    <p><b>Date de la réservation :</b> {{ reservation.reservation_date|date:"d-m-Y" }}</p>
+    <p>Billets : </p>
+    <table class="table table-bordered">
+        <tr>
+            <th rowspan="2">n°</th>
+            <th colspan="2">Passager</th>
+            <th rowspan="2">Voiture</th>
+            <th rowspan="2">Siège</th>
+            <th colspan="3">Départ</th>
+            <th colspan="3">Arrivée</th>
+        </tr>
+        <tr>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Ville</th>
+            <th>Gare</th>
+            <th>Date et heure</th>
+            <th>Ville</th>
+            <th>Gare</th>
+            <th>Date et heure</th>
+        </tr>
+        {% for ticket in tickets %}
+        <tr>
+            <td>{{ ticket.if_number }}</td>
+            <td>{{ ticket.passenger.first_name }}</td>
+            <td>{{ ticket.passenger.last_name }}</td>
+            <td>{{ ticket.car }}</td>
+            <td>{{ ticket.seat }}</td>
+            <td>{{ ticket.journey.route.departure_station.city }}</td>
+            <td>{{ ticket.journey.route.departure_station.station_name }}</td>
+            <td>{{ ticket.journey.departure_date_time|date:"d-m-Y H:i" }}</td>
+            <td>{{ ticket.journey.route.arrival_station.city }}</td>
+            <td>{{ ticket.journey.route.arrival_station.station_name }}</td>
+            <td>{{ ticket.journey.arrival_date_time|date:"d-m-Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    
+    
+    
+    
     <a href="{% url 'edit_reservation' if_number=reservation.if_number %}" class="btn btn-warning">Modifier cette réservation</a>
 </div>
 {% endblock %}
