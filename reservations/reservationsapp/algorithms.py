@@ -7,6 +7,7 @@ from .models import Gare, Journey, Route
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import datetime
 
 class Graph():
     """
@@ -15,14 +16,14 @@ class Graph():
             To price, distance and potentially time, we can then output a range of solutions
 
     """
-    def __init__(self, graph_edge_type,start_point,end_point):
+    def __init__(self, graph_edge_type,start_point,end_point,depart_date_time):
         """
             Initialise graph with stations, routes and weights or edges
             Clean all the arcs that are infeasible within the specified time window etc.
             ->instead of passing through the routes, go by journeys given they're associated with routes
             ->specify the edge type to see what weight to associate to graph
             ->start_point / end_point required for the efficient creation of a cleaner graph
-            
+            ->start and end point correspond to a Gare object
         """
         self.stations = Gare.objects.all()
         self.journeys = Journey.objects.all() #route obj with times
@@ -30,15 +31,43 @@ class Graph():
         self.G = nx.DiGraph()
         
         self.edges = defaultdict(dict) # avoids key errors #stored as dic of dics, key1 = depart, key2 = arrival, value = weight
-        self.edges_time_cleaned = defaultdict(dict) #will be the one storing the removed infeasible arcs
+        self.edges_times_dist = defaultdict(dict) #will be the one storing the removed infeasible arcs
         
-
+        
+        #clean this so that the dictionary containg everything is reduced and within logical context
         try:
             #adding edges depending on distance, cost etc.
             if graph_edge_type == "distance":
+                #BEFORE
                 for route in self.routes:
                     self.edges[route.departure_station][route.arrival_station] = route.distance
-            else:
+                ##################NEW###################
+                #get the components of depart_date_time:
+                latest_departure_date_time = datetime.datetime(depart_date_time.year,depart_date_time.month,depart_date_time.day,23,59,59,0)
+                
+                
+                
+                
+                start_point_arrival_times = []
+                for journey in self.journeys:
+                    #create a list containing the earliest arrival from the start node
+                    
+                    #need to ensure that you are above the requested time and within 24 hours
+                    if (journey.route.departure_station == start_point) and (journey.departure_date_time >= depart_date_time) and (journey.departure_date_time <= depart_date_time ):
+                        start_point_arrival_times.append(journey.arrival_date_time)
+                
+                earlies_departure = start_point_arrival_times.
+                for journey in self.journeys:
+                    #here apply time conditions to all non first branches
+                    if journey.route.departure_station == start_point:
+                        #now contains a tuple with departure and arrival times as well as the distace
+                        self.edges_times_dist[journey.route.departure_station][journey.route.arrival_station] = (journey.departure_date_time,journey.arrival_date_time,journey.route.distance)
+                        #start filtering based on a 24 hour time frame as well as nothing earlier than the earliest arrival from the departure station
+                    else:
+                        if 
+                        
+            
+            else:       
                 raise ValueError("Unsupported graph_edge_tyupe")
         except Exception as e:
             print(f"Error occurred while initializing the graph: {e}")
