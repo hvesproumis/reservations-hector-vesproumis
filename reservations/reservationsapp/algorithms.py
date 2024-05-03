@@ -43,32 +43,32 @@ class Graph():
                     self.edges[route.departure_station][route.arrival_station] = route.distance
                 ##################NEW###################
                 #get the components of depart_date_time:
-                latest_departure_date_time = datetime.datetime(depart_date_time.year,depart_date_time.month,depart_date_time.day,23,59,59,0)
-                
-                
-                
+                latest_departure_date_time = datetime.datetime(depart_date_time.year,depart_date_time.month,depart_date_time.day,23,59,59,0)            
                 
                 start_point_arrival_times = []
+                
                 for journey in self.journeys:
                     #create a list containing the earliest arrival from the start node
-                    
                     #need to ensure that you are above the requested time and within 24 hours
-                    if (journey.route.departure_station == start_point) and (journey.departure_date_time >= depart_date_time) and (journey.departure_date_time <= depart_date_time ):
+                    if (journey.route.departure_station == start_point) and (journey.departure_date_time >= depart_date_time) and (journey.departure_date_time <= latest_departure_date_time ):
                         start_point_arrival_times.append(journey.arrival_date_time)
                 
-                earlies_departure = start_point_arrival_times.
+                earliest_departure = min(start_point_arrival_times)
+                
                 for journey in self.journeys:
+                    #Here we add edges to the dictionary
                     #here apply time conditions to all non first branches
                     if journey.route.departure_station == start_point:
                         #now contains a tuple with departure and arrival times as well as the distace
                         self.edges_times_dist[journey.route.departure_station][journey.route.arrival_station] = (journey.departure_date_time,journey.arrival_date_time,journey.route.distance)
                         #start filtering based on a 24 hour time frame as well as nothing earlier than the earliest arrival from the departure station
                     else:
-                        if 
-                        
-            
+                        #apply a first filter so no earlier than first edge fastest completion but also not later than midnight
+                        if (journey.departure_date_time >= earliest_departure) and (journey.departure_date_time <= latest_departure_date_time):
+                            self.edges_times_dist[journey.route.departure_station][journey.route.arrival_station] = (journey.departure_date_time,journey.arrival_date_time,journey.route.distance)
+                    
             else:       
-                raise ValueError("Unsupported graph_edge_tyupe")
+                raise ValueError("Unsupported graph_edge_type")
         except Exception as e:
             print(f"Error occurred while initializing the graph: {e}")
 
