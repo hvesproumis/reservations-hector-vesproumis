@@ -90,7 +90,7 @@ def reservation_detail(request, if_number):
     else:
         reservation = get_object_or_404(Reservation, if_number=if_number, client__user=request.user)
 
-    tickets = Ticket.objects.all().filter(reservation=reservation).order_by("if_number")
+    tickets = Ticket.objects.all().filter(reservation=reservation).order_by("journey")
     context = {
         'reservation' : reservation,
         'tickets' : tickets,
