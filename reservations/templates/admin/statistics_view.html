@@ -4,5 +4,18 @@
 {% block content %}
 
 
+<figure class="highcharts-figure">
+    <div id="container" data-url="{% url 'reservations:advanced_search' %}?type={{ type }}"></div>
+</figure>
+
+<script>
+    $.ajax({
+        url: $("#container").attr("data-url"),
+        dataType: 'json',
+        success: function (data) {
+          Highcharts.chart("container", data);
+        }
+      });
+</script>
 
 {% endblock %}
