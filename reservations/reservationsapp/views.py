@@ -42,7 +42,7 @@ def update_profile(request):
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('account')
+            return redirect('reservations:account')
     else:
         form = UserUpdateForm(instance=request.user)
 
