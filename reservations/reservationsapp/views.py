@@ -207,7 +207,7 @@ def delete_passager(request, passager_id):
 #Staff view linked to stats view template only accessible to staff members
 @staff_member_required
 def collaborator(request):
-    return render(request, 'admin/statistic_view.html')
+    return render(request, 'admin/statistics_view.html')
 
 #For staff, data on reservations
 
