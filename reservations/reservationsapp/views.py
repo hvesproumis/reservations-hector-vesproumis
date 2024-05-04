@@ -207,7 +207,13 @@ def delete_passager(request, passager_id):
 #Staff view linked to stats view template only accessible to staff members
 @staff_member_required
 def collaborator(request):
-    return render(request, 'admin/statistics_view.html')
+    type = 'reservations_by_day'
+    keyword = ''
+    context = {
+        'type' : type,
+        'keyword' : keyword
+    }
+    return render(request, 'admin/statistics_view.html', context=context)
 
 #For staff, data on reservations
 
@@ -218,34 +224,57 @@ def advanced_search(request):
     type_search = request.GET.get('type')
     keyword = request.GET.get('keyword')
 
+    # Dictionary containing optional keys for the chart, depending on the the chart wanted
+    options = {}
+    
     if type_search == 'reservations_by_day':
-        # Nombre de réservations par jour
-        data = Reservation.objects.annotate(day=TruncDay('journey__departure_date_time')).values('day').annotate(count=Count('id')).order_by('day')
+        chart_type = 'column'
+        title = 'Nombre de réservations effectuées par jour'
+        subtitle = ''
+        xAxis = {'type': 'category'}
+        yAxis = {
+            'allowDecimals': 'false',
+            'title': {
+                'text': 'Nombre de réservations'
+            }
+        }
+        
+        dataset = Reservation.objects.annotate(day=TruncDay('reservation_date')).values('day').annotate(count=Count('id')).order_by('day')
+        data = list(map(lambda row: {'name': row['day'], 'y': row['count']}, dataset))
+        series = [{
+            'name': 'Réservations',
+            'data': data
+        }]
+        
+        options['legend'] = {'enabled': 'false'}
 
     elif type_search == 'reservations_by_route':
-        # Nombre de réservations par trajet
         data = Reservation.objects.filter(journey__route=keyword).values('journey__route').annotate(count=Count('id')).order_by('journey__route')
 
     elif type_search == 'list_reservations':
-        # Liste des réservations pour une gare de départ ou d'arrivée
-        data = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count'))
+        data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
 
     elif type_search == 'list_passengers':
-        # Liste des passagers pour un trajet
         data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
 
     elif type_search == 'occupancy_rate':
-        # Taux de remplissage d'un trajet
         data = Reservation.objects.filter(journey__route=keyword).aggregate(occupancy_rate=Sum('passenger_count') / 500 * 100)
 
     elif type_search == 'station_frequency':
-        # Taux de fréquentation d'une gare
         data = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
 
     else:
-        data = {"error": "Invalid search type"}
-
-    return JsonResponse(list(data), safe=False)
+        return JsonResponse({}) 
+    
+    chart = {
+        'chart': {'type': chart_type},
+        'title': {'text': title},
+        'subtitle': subtitle,
+        'xAxis': xAxis,
+        'yAxis': yAxis,
+        'series': series
+    } | options
+    return JsonResponse(chart)
 
 #Pour info, utiliser l'API : 
 #function performSearch(typeSearch, keyword) {
