@@ -73,12 +73,14 @@ def journeys(request):
 @login_required
 def reservations(request):
     if request.user.is_staff:
-        toutes_les_reservations = Reservation.objects.select_related('client').prefetch_related('journeys')
-
+        reservations = Reservation.objects.select_related('client').prefetch_related('journeys')
     else:
-        toutes_les_reservations = Reservation.objects.filter(client__user=request.user)
+        reservations = Reservation.objects.filter(client__user=request.user)
     
-    return render(request, 'reservationsapp/liste_reservations.html', {'reservations': toutes_les_reservations})
+    context = {
+        'reservations' : reservations,
+    }
+    return render(request, 'reservationsapp/liste_reservations.html', context=context)
 
 
 @login_required
