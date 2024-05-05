@@ -111,7 +111,10 @@ def edit_reservation(request, if_number=None):
     )
 
     if if_number:
-        reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
+        if request.user.is_staff:
+            reservation = get_object_or_404(Reservation, if_number=if_number)
+        else:
+            reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
         template_name = 'reservationsapp/edit_reservation.html'  
     else:
         reservation = Reservation(client=client)
