@@ -105,7 +105,8 @@ class Graph():
             if departure_datetime >= arrived_time:
                 # Calculate the waiting time
                 waiting_time = (departure_datetime - arrived_time).total_seconds() / 3600  # Convert to hours
-                total_penalty = max(0, waiting_time) + (distance / 100)  # CHANGE THIS DEPENDING ON AVERAGE SPEED OF TRAINS
+                journey_duration = (arrival_time - departure_datetime).total_seconds() / 3600 #Converto to hours
+                total_penalty = max(0, waiting_time) + journey_duration  # CHANGE THIS DEPENDING ON AVERAGE SPEED OF TRAINS
 
                 ###########>> WILL NEED TO ENSURE ARRIVAL TIME IS IN PROPORTION TO DISTANCE IF NOT THIS DOESNT MAKE SENSE, WILL NEED TO CHANGE penaly from distance to travel time
                 
@@ -196,4 +197,4 @@ class Graph():
                     # Add to the priority queue with the heuristic
                     heapq.heappush(priorityQueue, (new_distance + self.heuristic(neighbor, end_station), neighbor))
         
-        return None  # No valid path found
+        return None
