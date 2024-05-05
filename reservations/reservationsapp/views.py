@@ -249,7 +249,26 @@ def advanced_search(request):
         options['legend'] = {'enabled': 'false'}
 
     elif type_search == 'reservations_by_route':
-        data = Reservation.objects.filter(journey__route=keyword).values('journey__route').annotate(count=Count('id')).order_by('journey__route')
+        chart_type = 'column'
+        title = 'Nombre de réservations effectuées par par route'
+        subtitle = ''
+        xAxis = {'type': 'category'}
+        yAxis = {
+            'allowDecimals': 'false',
+            'title': {
+                'text': 'Nombre de réservations'
+            }
+        }
+        
+        dataset = Reservation.objects.filter(journey__route=keyword).values('journey__route').annotate(count=Count('id')).order_by('journey__route')
+        
+        data = list(map(lambda row: {'name': row['journey__route'], 'y': row['count']}, dataset))
+        series = [{
+            'name': 'Réservations',
+            'data': data
+        }]
+        
+        options['legend'] = {'enabled': 'false'}
 
     elif type_search == 'list_reservations':
         data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
