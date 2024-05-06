@@ -1,9 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Route, Client, Reservation, Passager, Journey, Ticket, Gare
+from .models import Client, Reservation, Passager, Journey, Ticket
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
-from django.conf import settings
-from django.forms import formset_factory
-from django.db import transaction
 from django.db.models import Count, F, Sum, Q
 from django.db.models.functions import TruncDay
 from django.core.paginator import Paginator
@@ -11,7 +8,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from .algorithms import Graph
 from django.contrib import messages
@@ -69,41 +65,28 @@ def journeys(request):
         elif choice == 'arrivee':
             journeys = journeys.filter(route__arrival_station=station)
 
-    start_point = form.cleaned_data.get("depart")
-    end_point = form.cleaned_data.get("arrivee")
-    best_route = None
+        start_point = form.cleaned_data.get("depart")
+        end_point = form.cleaned_data.get("arrivee")
+        best_route = None
 
-    if start_point and end_point:  # Check that both points are provided
-        #Generate a distance graph
-        graph_distance = Graph("distance") #later include same but with cost etc.
-        graph_distance.generate_graph()
+        if start_point and end_point:  # Check that both points are provided
+            #Generate a distance graph
+            graph_distance = Graph("distance") #later include same but with cost etc.
+            graph_distance.generate_graph()
 
-        try:
-            # Solve for the best route (shortest path)
-            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
-        except Exception as e:
-            print(f"Error finding shortest path: {e}")
-
-    start_point = form.cleaned_data.get("depart")
-    end_point = form.cleaned_data.get("arrivee")
-    best_route = None
-
-    if start_point and end_point:  # Check that both points are provided
-        #Generate a distance graph
-        graph_distance = Graph("distance") #later include same but with cost etc.
-        graph_distance.generate_graph()
-
-        try:
-            # Solve for the best route (shortest path)
-            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
-        except Exception as e:
-            print(f"Error finding shortest path: {e}")
+            try:
+                # Solve for the best route (shortest path)
+                best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
+            except Exception as e:
+                print(f"Error finding shortest path: {e}")
+                
+        if best_route:
+            return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
 
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    if best_route:
-        return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
+    
     return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj})
 
 #Réservations
