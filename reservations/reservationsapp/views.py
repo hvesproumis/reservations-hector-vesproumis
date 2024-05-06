@@ -14,7 +14,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .algorithms import Graph
+from .algorithms2 import Graph
 from django.contrib import messages
 from django.utils.dateparse import parse_date
 
