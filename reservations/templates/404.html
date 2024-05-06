@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page not found</title>
+    <style>
+        /* Styles pour centrer le jeu */
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            color: #fff;
+        }
+        canvas {
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Oops! Page not found</h1>
+    <p>Sorry, the page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+    <!-- Ajoutez le code JavaScript pour le jeu -->
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        // Code JavaScript pour le jeu Snake
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Variables pour la position et la vitesse du serpent
+        let snakeX = 10;
+        let snakeY = 10;
+        let dx = 10;
+        let dy = 0;
+
+        // Fonction principale de dessin du serpent
+        function drawSnake() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'green';
+            ctx.fillRect(snakeX, snakeY, 10, 10);
+        }
+
+        // Fonction pour mettre à jour la position du serpent
+        function updateSnake() {
+            snakeX += dx;
+            snakeY += dy;
+        }
+
+        // Fonction pour animer le jeu
+        function gameLoop() {
+            updateSnake();
+            drawSnake();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Démarrer le jeu
+        gameLoop();
+    </script>
+</body>
+</html>

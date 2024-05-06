@@ -303,7 +303,6 @@ def advanced_search(request):
     
     elif type_search == 'list_reservations':
         data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
-        data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
 
     elif type_search == 'list_passengers':
         data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
