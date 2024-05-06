@@ -95,11 +95,11 @@ def journeys(request):
 
     
         # Return with the best_route if found, otherwise just the list of journeys
-        return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
+        return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
         
     else:
          # If form is invalid:
-        return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'errors': form.errors})
+        return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'errors': form.errors})
     
 
 
