@@ -332,7 +332,7 @@ def advanced_search(request):
             }
         }
         yAxis = {
-            'allowDecimals': 'false',
+            'allowDecimals': False,
             'title': {'text': 'Nombre de réservations'}
         }
         
@@ -351,7 +351,7 @@ def advanced_search(request):
             
         series = [{'name': 'Réservations', 'data': data}]
         
-        options['legend'] = {'enabled': 'false'}
+        options['legend'] = {'enabled': False}
 
 
     elif type_search == 'reservations_by_route':
@@ -371,14 +371,14 @@ def advanced_search(request):
         subtitle = ''
         xAxis = {'type': 'category'}
         yAxis = {'title': {'text': 'Nombre de réservations'}, 'allowDecimals': False},
-        options['legend'] = {'enabled': 'false'}
+        options['legend'] = {'enabled': False}
         
         options['plotOptions'] = {
             'pie': {
-                'allowPointSelect': 'true',
+                'allowPointSelect': True,
                 'cursor': 'pointer',
                 'dataLabels': {
-                    'enabled': 'true',
+                    'enabled': True,
                     'format': '<b>{point.name}</b>: {point.percentage:.1f} %'
                 }
             }
@@ -398,13 +398,20 @@ def advanced_search(request):
         subtitle = ''
         xAxis = {'type': 'category'}
         yAxis = {
-            'allowDecimals': 'false',
-            'title': {'text': ''}
+            'allowDecimals': False,
+            'title': {'text': 'Pourcentage de remplissage'}
         }
         
-        dataset = Reservation.objects.filter(journey__route=keyword).aggregate(occupancy_rate=Sum('passenger_count') / 500 * 100)
-        data = [{'name': row['keyword'].strftime('%Y-%m-%d'), 'y': row['occupancy_rate']} for row in dataset]
-        series = [{'name': 'keyword', 'data': data}]
+        maximum = 14 * 120. # Number of cars * number of seats = max space in a train
+        routes = Route.objects.all()
+        series = []
+        for route in routes :
+            data = []
+            journeys = Journey.objects.all().filter(route=route)
+            for journey in journeys :
+                dataset = Ticket.objects.all().filter(journey=journey).count() * (100. / maximum)
+                data.append({'name': f"{journey.departure_date_time} - {journey.arrival_date_time}", 'y': dataset})
+            series.append({'name': f"{route.departure_station}-{route.arrival_station}", 'data': data, 'visible':False})
         
     elif type_search == 'station_frequency':
         chart_type = 'column'
@@ -412,7 +419,7 @@ def advanced_search(request):
         subtitle = ''
         xAxis = {'type': 'category'}
         yAxis = {
-            'allowDecimals': 'false',
+            'allowDecimals': False,
             'title': {'text': ''}
         }
         
