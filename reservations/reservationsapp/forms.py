@@ -110,8 +110,8 @@ class JourneySearchForm(forms.Form):
         station (Station): The desired departure/arrival station
         choice (depart/arrivee): A choice to specify if the station is a departure or an arrival station for the query
     """
-    station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Choisir une gare")
-    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée'), ('dep_and_arrival', 'Départ et Arrivée')), required=False, label="Type de trajet")
+    departure_station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Gare de départ")
+    arrival_station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Gare d'arrivée")
     
     # Adding the DateTimeField for departure date and time
     depart_date_time = forms.DateTimeField(

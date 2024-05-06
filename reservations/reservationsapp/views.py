@@ -78,23 +78,18 @@ def journeys(request):
     best_route = None
     
     if form.is_valid():
-        choice = form.cleaned_data['choice']
-        station = form.cleaned_data['station']
+        departure_station = form.cleaned_data['departure_station']
+        arrival_station = form.cleaned_data['arrival_station']
         depart_date_time = form.cleaned_data['depart_date_time']
 
-        if choice == 'depart':
-            if station:
-                journeys = journeys.filter(route__departure_station=station)
-        elif choice == 'arrivee':
-            if station:
-                journeys = journeys.filter(route__arrival_station=station)
-        elif choice == 'dep_and_arrival':
-            start_station = form.cleaned_data.get("depart")
-            end_station = form.cleaned_data.get("arrivee")
+        if departure_station:
+            journeys = journeys.filter(route__departure_station=departure_station)
+        if arrival_station:
+            journeys = journeys.filter(route__arrival_station=arrival_station)
 
-            if start_station and end_station and depart_date_time:
-                graph = Graph(start_station, end_station, depart_date_time)
-                best_route = graph.find_optimal_path(start_station, end_station)
+        if departure_station and arrival_station and depart_date_time:
+            graph = Graph(departure_station, arrival_station, depart_date_time)
+            best_route = graph.find_optimal_path(departure_station, arrival_station)
 
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
