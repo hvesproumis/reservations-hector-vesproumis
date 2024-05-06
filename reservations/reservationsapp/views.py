@@ -169,7 +169,13 @@ def edit_reservation(request, if_number=None):
         'client_form': client_form,
         'reservation_form': reservation_form
     })
-
+    
+@login_required
+def delete_reservation(request, if_number):
+    reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
+    reservation.delete()
+    messages.success(request, "Réservation annulée avec succès.")
+    return redirect('reservations:reservations')
 
 
     

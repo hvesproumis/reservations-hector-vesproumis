@@ -14,6 +14,7 @@
             <li class="reservation-item">
                 Réservation <a href="{% url 'reservations:reservation_detail' reservation.if_number %}" class="reservation-link">{{ reservation.if_number }}</a>
                 <a href="{% url 'reservations:edit_reservation' reservation.if_number %}" class="btn btn-warning edit-btn">Éditer</a>
+                <a href="{% url 'reservations:delete_reservation' reservation.if_number %}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action est irréversible.');">Annuler</a>
             </li>
         {% endfor %}
     </ul>

@@ -12,6 +12,7 @@ urlpatterns = [
     path('reservation/<str:if_number>/', views.reservation_detail, name='reservation_detail'),
     path('new_reservation/', views.edit_reservation, name='create_reservation'),
     path('edit_reservation/<str:if_number>/', views.edit_reservation, name='edit_reservation'),
+    path('delete_reservation/<str:if_number>/', views.delete_reservation, name = "delete_reservation"),
     path('create_passenger/', views.create_passager, name='create_passager'),
     path('my_passengers/', views.view_passagers, name='view_passagers'),
     path('edit_passenger/<int:passager_id>/', views.edit_passager, name='edit_passager'),
