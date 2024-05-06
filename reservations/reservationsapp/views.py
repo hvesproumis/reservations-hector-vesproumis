@@ -1,3 +1,7 @@
+"""
+This file contains all the views and the logic to make the application work
+"""
+
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Client, Reservation, Passager, Journey, Ticket
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
@@ -13,9 +17,13 @@ from .algorithms import Graph
 from django.contrib import messages
 from django.utils.dateparse import parse_date
 
-#Utilisateur
+
+# User
 
 def signup(request):
+    """
+    A view to sign-up a new client using a predifined form.
+    """
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -32,10 +40,16 @@ def signup(request):
 
 @login_required
 def account(request):
+    """
+    A view to display a client account information.
+    """
     return render(request, 'registration/account.html')
 
 @login_required
 def update_profile(request):
+    """
+    A view to edit a client information based on the user update form.
+    """
     if request.method == 'POST':
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
@@ -46,12 +60,12 @@ def update_profile(request):
 
     return render(request, 'registration/update_profile.html', {'form': form})
 
-#Trajets
+
+# Journeys
 
 def journeys(request):
     """
-        ->User can look for routes linked to a departure, arrival or both
-        ->if both departure and arrival provided, best options are filtered
+    A view to display to the user a list of journeys, based on a departure and arrival stations chosen.
 
     """
     form = JourneySearchForm(request.GET or None)
@@ -65,6 +79,7 @@ def journeys(request):
         elif choice == 'arrivee':
             journeys = journeys.filter(route__arrival_station=station)
 
+        # The code that follows is used to find the shortest route between the two desired stations
         start_point = form.cleaned_data.get("depart")
         end_point = form.cleaned_data.get("arrivee")
         best_route = None
@@ -83,16 +98,22 @@ def journeys(request):
         if best_route:
             return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
 
+    # The paginator is used to have only 10 journeys displayed, with the posibility of displaying the 10 next journeys offered, etc
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj})
 
-#Réservations
+
+# Reservations
 
 @login_required
 def reservations(request):
+    """
+    A view used to display all the reservations made by a client.
+    If the client is an admin, all the site reservations are shown to him.
+    """
     if request.user.is_staff:
         reservations = Reservation.objects.select_related('client').prefetch_related('journeys')
     else:
@@ -106,6 +127,13 @@ def reservations(request):
 
 @login_required
 def reservation_detail(request, if_number):
+    """
+    A view that displays a reservation information to its client.
+    An administrator can see all the reservations.
+
+    Args:
+        if_number (Char): The id of the reservation 
+    """
     if request.user.is_staff:
         reservation = get_object_or_404(Reservation, if_number=if_number)
     else:
@@ -121,6 +149,13 @@ def reservation_detail(request, if_number):
 
 @login_required
 def edit_reservation(request, if_number=None):
+    """
+    A view used to create or edit a reservation using the ReservationForm.
+
+    Args:
+        if_number (Char, optional): The id of the reservation that the client wants to edit. Defaults to None means the creation of a new reservation.
+    """
+    # The client information are displayed for him to verify it before making a new reservation
     client, created = Client.objects.update_or_create(
         user=request.user,
         defaults={
@@ -131,6 +166,7 @@ def edit_reservation(request, if_number=None):
         }
     )
 
+    # If an id is provided, the form edit the reservation, else it creates a new one
     if if_number:
         if request.user.is_staff:
             reservation = get_object_or_404(Reservation, if_number=if_number)
@@ -151,7 +187,7 @@ def edit_reservation(request, if_number=None):
             reservation.client = client  
             reservation.save()
             
-            # Delete existing tickets before creating new ones
+            # Delete existing tickets before creating new ones, in case of the edition of a reservation
             tickets = Ticket.objects.all().filter(reservation=reservation)
             for ticket in tickets:
                 ticket.delete()
@@ -174,9 +210,15 @@ def edit_reservation(request, if_number=None):
 
 
     
-#Passagers
+# Passengers
 
 def get_passager_details(request, passager_id):
+    """
+    A view only used to return a JSON with the passenger information.
+
+    Args:
+        passager_id (Int): The id of the pasenger
+    """
     try:
         passager = Passager.objects.get(id=passager_id, user=request.user)
         data = {
@@ -190,6 +232,9 @@ def get_passager_details(request, passager_id):
     
 @login_required
 def create_passager(request):
+    """
+    A view used to create a new passenger associated to the client that opens the view, using the Passenger form"
+    """
     if request.method == 'POST':
         form = PassagerForm(request.POST)
         if form.is_valid():
@@ -203,11 +248,20 @@ def create_passager(request):
 
 @login_required
 def view_passagers(request):
+    """
+    A view to display all the passengers belonging to a client
+    """
     passagers = Passager.objects.filter(user=request.user) 
     return render(request, 'reservationsapp/view_passagers.html', {'passagers': passagers})
 
 @login_required
 def edit_passager(request, passager_id):
+    """
+    A view to edit a passenger information using the Passenger form.
+
+    Args:
+        passager_id (int): The id of the passenger
+    """
     passager = get_object_or_404(Passager, id=passager_id, user=request.user)
     if request.method == 'POST':
         form = PassagerForm(request.POST, instance=passager)
@@ -220,6 +274,12 @@ def edit_passager(request, passager_id):
 
 @login_required
 def delete_passager(request, passager_id):
+    """
+    A view to delete a passenger. it returns an error in case the passenger is linked to an active reservation.
+
+    Args:
+        passager_id (Int): The id of the passenger
+    """
     passager = get_object_or_404(Passager, id=passager_id, user=request.user)
     if passager.tickets.exists():
         messages.error(request, "Ce passager est associé à des réservations et ne peut pas être supprimé.")
@@ -228,9 +288,13 @@ def delete_passager(request, passager_id):
         messages.success(request, "Passager supprimé avec succès.")
     return redirect('reservations:view_passagers')
 
-#Staff view linked to stats view template only accessible to staff members
+# Staff view linked to stats view template only accessible to staff members
 @staff_member_required
 def collaborator(request):
+    """
+    A view used to display statistical information for a website admin.
+    It relies on the 'advanced_search' view to query data for the charts.
+    """
     type = 'reservations_by_day'
     keyword = ''
     context = {
@@ -239,11 +303,13 @@ def collaborator(request):
     }
     return render(request, 'admin/statistics_view.html', context=context)
 
-#For staff, data on reservations
-
 @staff_member_required
 @require_http_methods(["GET"])
 def advanced_search(request):
+    """
+    A view used to return statistical data (JSON) based on keywords and the type of the request.
+    The information are then processed in a template to create a chart.
+    """
     type_search = request.GET.get('type')
     start_date = request.GET.get('start_date', '')
     end_date = request.GET.get('end_date', '')
@@ -321,20 +387,3 @@ def advanced_search(request):
         'series': series
     } | options
     return JsonResponse(chart)
-
-#Pour info, utiliser l'API : 
-#function performSearch(typeSearch, keyword) {
-#    let url = new URL('/api/advanced-search/', window.location.origin);
-#    url.searchParams.append('type', typeSearch);
-#    url.searchParams.append('keyword', keyword);
-#
-#    fetch(url)
-#    .then(response => response.json())
-#    .then(data => {
-#       console.log(data); // Traiter et afficher les données
-#    })
-#    .catch(error => console.error('Error fetching data:', error));
-#}
-#
-#// Exemple d'utilisation
-#performSearch('reservations_by_day', '2023-09-01');
