@@ -66,10 +66,10 @@ class Graph():
             ->Function defining the criterion telling the algorithm what node to go for based on a cost estimation
             ->Could add a combination of the time weight too but can keep simple with distance for now
         """
-        lat1 = departure_station.latitude()
-        long1 = departure_station.longitude()
-        lat2 = arrival_station.latitude()
-        long2 = arrival_station.longitude()
+        lat1 = departure_station.latitude
+        long1 = departure_station.longitude
+        lat2 = arrival_station.latitude
+        long2 = arrival_station.longitude
 
         lat1_rad =  radians(lat1)
         long1_rad = radians(long1)
