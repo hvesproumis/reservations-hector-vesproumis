@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Route, Client, Reservation, Passager, Journey, Ticket
+from .models import Route, Client, Reservation, Passager, Journey, Ticket, Gare
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory
@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib import messages
+from django.utils.dateparse import parse_date
 
 #Utilisateur
 
@@ -27,7 +28,7 @@ def signup(request):
             user.last_name = form.cleaned_data.get('last_name')
             user.save()
             login(request, user)
-            return redirect('login')
+            return redirect('/accounts/login/')
     else:
         form = SignUpForm()
     return render(request, 'registration/signup.html', {'form': form})
@@ -207,45 +208,95 @@ def delete_passager(request, passager_id):
 #Staff view linked to stats view template only accessible to staff members
 @staff_member_required
 def collaborator(request):
-    return render(request, 'admin/statistic_view.html')
+    type = 'reservations_by_day'
+    keyword = ''
+    context = {
+        'type' : type,
+        'keyword' : keyword
+    }
+    return render(request, 'admin/statistics_view.html', context=context)
 
 #For staff, data on reservations
 
 @staff_member_required
 @require_http_methods(["GET"])
 def advanced_search(request):
-    # Récupérer les paramètres de la requête
     type_search = request.GET.get('type')
-    keyword = request.GET.get('keyword')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    keyword = request.GET.get('keyword', '')
+    
+    if start_date:
+        start_date = parse_date(start_date)
+    if end_date:
+        end_date = parse_date(end_date)
 
+    # Dictionary containing optional keys for the chart, depending on the the chart wanted
+    options = {}
+    
     if type_search == 'reservations_by_day':
-        # Nombre de réservations par jour
-        data = Reservation.objects.annotate(day=TruncDay('journey__departure_date_time')).values('day').annotate(count=Count('id')).order_by('day')
+        chart_type = 'column'
+        title = 'Nombre de réservations effectuées par jour'
+        subtitle = ''
+        xAxis = {'type': 'category'}
+        yAxis = {
+            'allowDecimals': 'false',
+            'title': {'text': 'Nombre de réservations'}
+        }
+        
+        dataset = Reservation.objects.annotate(day=TruncDay('reservation_date')).values('day').annotate(count=Count('id')).order_by('day')
+        data = [{'name': row['day'].strftime('%Y-%m-%d'), 'y': row['count']} for row in dataset]
+        series = [{'name': 'Réservations', 'data': data}]
+        options['legend'] = {'enabled': 'false'}
 
     elif type_search == 'reservations_by_route':
-        # Nombre de réservations par trajet
-        data = Reservation.objects.filter(journey__route=keyword).values('journey__route').annotate(count=Count('id')).order_by('journey__route')
+        queryset = Ticket.objects.filter(
+            journey__departure_date_time__gte=start_date,
+            journey__departure_date_time__lte=end_date
+        ).values(
+            'journey__route__departure_station__city',
+            'journey__route__arrival_station__city'
+        ).annotate(count=Count('id')).order_by('journey__route__departure_station__city')
 
+        data = [{'name': f"{row['journey__route__departure_station__city']} - {row['journey__route__arrival_station__city']}", 'y': row['count']} for row in queryset]
+        series = [{'name': 'Nombre de réservations sur cette route', 'data': data}]
+
+        chart = {
+            'chart': {'type': 'column'},
+            'title': {'text': 'Nombre de réservations par route'},
+            'xAxis': {'type': 'category'},
+            'yAxis': {'title': {'text': 'Nombre de réservations'}, 'allowDecimals': False},
+            'series': series,
+            'legend': {'enabled': False}
+        }
+        return JsonResponse(chart)
+
+
+    
     elif type_search == 'list_reservations':
-        # Liste des réservations pour une gare de départ ou d'arrivée
-        data = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count'))
+        data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
 
     elif type_search == 'list_passengers':
-        # Liste des passagers pour un trajet
         data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
 
     elif type_search == 'occupancy_rate':
-        # Taux de remplissage d'un trajet
         data = Reservation.objects.filter(journey__route=keyword).aggregate(occupancy_rate=Sum('passenger_count') / 500 * 100)
 
     elif type_search == 'station_frequency':
-        # Taux de fréquentation d'une gare
         data = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
 
     else:
-        data = {"error": "Invalid search type"}
-
-    return JsonResponse(list(data), safe=False)
+        return JsonResponse({}) 
+    
+    chart = {
+        'chart': {'type': chart_type},
+        'title': {'text': title},
+        'subtitle': subtitle,
+        'xAxis': xAxis,
+        'yAxis': yAxis,
+        'series': series
+    } | options
+    return JsonResponse(chart)
 
 #Pour info, utiliser l'API : 
 #function performSearch(typeSearch, keyword) {

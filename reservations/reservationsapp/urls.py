@@ -1,8 +1,8 @@
+# reservationsapp/urls.py (application's URL configuration)
 from django.urls import path
-
 from . import views
 
-app_name = "reservations"
+app_name = "reservations"  # This should match the namespace used in the project's urls.py
 urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('account/', views.account, name='account'),
@@ -18,5 +18,6 @@ urlpatterns = [
     path('delete_passenger/<int:passager_id>/', views.delete_passager, name='delete_passager'),
     path('api/passengers/<int:passager_id>/', views.get_passager_details, name='get_passager_details'),
     path('api/advanced_search/', views.advanced_search, name='advanced_search'),
+    path('advanced_search/', views.advanced_search, name='advanced_search'),
     path('collaborator/', views.collaborator, name='collaborator'),
 ]

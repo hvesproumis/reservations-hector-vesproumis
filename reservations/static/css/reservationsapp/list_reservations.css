@@ -1,0 +1,11 @@
+.reservation-item {
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    padding: 15px; 
+    margin-bottom: 10px; 
+    list-style-type: none; 
+}
+.reservation-link, .edit-btn {
+    text-decoration: none; 
+}

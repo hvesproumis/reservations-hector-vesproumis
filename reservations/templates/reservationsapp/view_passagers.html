@@ -1,26 +1,10 @@
 {% extends 'reservationsapp/base.html' %}
 
 {% block content %}
-<style>
-    table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 10px; 
-    }
-    th, td {
-        padding: 8px; 
-        text-align: left;
-    }
-    th {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-    }
-    tbody tr {
-        background-color: #ffffff; 
-        border-radius: 5px; 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-    }
-</style>
+
+{% load static %}
+<link href="{% static 'css/reservationsapp/view_passenger.css' %}" rel="stylesheet">
+
 <h2>Mes Passagers</h2>
 <div class="container pt-2 pb-2">
 <table>

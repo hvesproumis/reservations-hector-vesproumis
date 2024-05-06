@@ -1,4 +1,13 @@
 {% load static %}
+
+<!-- Highcharts libraries -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/data.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script src="https://code.highcharts.com/highcharts.src.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -31,11 +40,11 @@
                 </div>
                 <div class="modal-body d-flex flex-column justify-content-center">
                     <div class="navbar-nav text-center">
-                        <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:trajets' %}">Satistics</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:journeys' %}">Satistics</a>
                         <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:create_reservation' %}">Réserver un voyage</a>
                         <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:reservations' %}">Mes futurs voyages</a>
                         <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:view_passagers' %}">Statistics</a>
-                        <a class="nav-link {% if request.resolver_match.url_name == 'account' %}active{% endif %}" href="{% url 'account' %}">My collab account</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'account' %}active{% endif %}" href="{% url 'reservations:account' %}">My collab account</a>
                         {% if user.is_authenticated %}
                             <a class="nav-link" href="{% url 'logout' %}?next={{ request.path }}" style="color: red;">Déconnexion</a>
 
