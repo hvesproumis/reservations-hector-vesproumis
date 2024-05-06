@@ -1,11 +1,12 @@
+
 """
-This file contains all the views and the logic to make the application work
+Ce fichier contient toutes les vues et la logique pour faire fonctionner l'application
 """
 import random
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Client, Reservation, Passager, Journey, Ticket, Route
+from .models import Client, Reservation, Passager, Journey, Ticket, Route, Station
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
-from django.db.models import Count, F, Sum, Q
+from django.db.models import Count, Q
 from django.db.models.functions import TruncDay
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -14,16 +15,16 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth import login
 from django.core import serializers
-from .algorithms2 import Graph
 from django.contrib import messages
 from django.utils.dateparse import parse_date
+from .algorithms2 import Graph
 
 
 # User
 
 def signup(request):
     """
-    A view to sign-up a new client using a predifined form.
+    Une vue pour inscrire un nouveau client en utilisant un formulaire prédéfini.
     """
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -42,14 +43,14 @@ def signup(request):
 @login_required
 def account(request):
     """
-    A view to display a client account information.
+    Une vue pour afficher les informations du compte d'un client.
     """
     return render(request, 'registration/account.html')
 
 @login_required
 def update_profile(request):
     """
-    A view to edit a client information based on the user update form.
+    Une vue pour modifier les informations d'un client en fonction du formulaire de mise à jour de l'utilisateur.
     """
     if request.method == 'POST':
         form = UserUpdateForm(request.POST, instance=request.user)
@@ -66,11 +67,9 @@ def update_profile(request):
 
 def journeys(request):
     """
-    A view to display to the user a list of journeys, based on a departure and arrival stations chosen.
-
+    Une vue pour afficher à l'utilisateur une liste de trajets, basée sur des gares de départ et d'arrivée choisies.
     """
     form = JourneySearchForm(request.GET or None)
-    routes = Route.objects.all()
     journeys = Journey.objects.all().order_by('departure_date_time')
 
     if form.is_valid():
@@ -78,38 +77,26 @@ def journeys(request):
         station = form.cleaned_data['station']
         depart_date_time = form.cleaned_data['depart_date_time']
         best_route = None
-        routes = Route.objects.all()
-        journeys = Journey.objects.all().order_by('departure_date_time')
 
         if choice == 'depart':
             if station:
-                routes = routes.filter(departure_station=station)
-                journeys = journeys.filter(route__in=routes)
+                journeys = journeys.filter(route__departure_station=station)
         elif choice == 'arrivee':
             if station:
-                routes = routes.filter(arrival_station=station)
-                journeys = journeys.filter(route__in=routes)
+                journeys = journeys.filter(route__arrival_station=station)
         elif choice == 'dep_and_arrival':
             start_station = form.cleaned_data.get("depart")
             end_station = form.cleaned_data.get("arrivee")
-            
 
             if start_station and end_station and depart_date_time:
                 graph = Graph(start_station, end_station, depart_date_time)
                 best_route = graph.find_optimal_path(start_station, end_station)
 
-        paginator = Paginator(journeys, 10)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
+    paginator = Paginator(journeys, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-    
-        # Return with the best_route if found, otherwise just the list of journeys
-        return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
-        
-    else:
-         # If form is invalid:
-        return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'errors': form.errors})
-    
+    return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
 
 
 
@@ -118,8 +105,8 @@ def journeys(request):
 @login_required
 def reservations(request):
     """
-    A view used to display all the reservations made by a client.
-    If the client is an admin, all the site reservations are shown to him.
+    Une vue utilisée pour afficher toutes les réservations effectuées par un client.
+    Si le client est un administrateur, toutes les réservations du site lui sont montrées.
     """
     if request.user.is_staff:
         reservations = Reservation.objects.select_related('client').prefetch_related('journeys')
@@ -135,18 +122,18 @@ def reservations(request):
 @login_required
 def reservation_detail(request, if_number):
     """
-    A view that displays a reservation information to its client.
-    An administrator can see all the reservations.
+    Une vue qui affiche les informations d'une réservation à son client.
+    Un administrateur peut voir toutes les réservations.
 
     Args:
-        if_number (Char): The id of the reservation 
+        if_number (Char): L'identifiant de la réservation 
     """
     if request.user.is_staff:
         reservation = get_object_or_404(Reservation, if_number=if_number)
     else:
         reservation = get_object_or_404(Reservation, if_number=if_number, client__user=request.user)
 
-    tickets = Ticket.objects.all().filter(reservation=reservation).order_by("journey")
+    tickets = Ticket.objects.filter(reservation=reservation).order_by("journey")
     context = {
         'reservation' : reservation,
         'tickets' : tickets,
@@ -156,38 +143,33 @@ def reservation_detail(request, if_number):
 
 @login_required
 def edit_reservation(request, if_number=None):
-
     """
-    A view used to create or edit a reservation using the ReservationForm.
+    Une vue utilisée pour créer ou modifier une réservation en utilisant le formulaire ReservationForm.
 
     Args:
-        if_number (Char, optional): The id of the reservation that the client wants to edit. Defaults to None means the creation of a new reservation.
+        if_number (Char, facultatif): L'identifiant de la réservation que le client souhaite modifier.
+        Par défaut à None signifie la création d'une nouvelle réservation.
     """
-    # Initialize variables
     template_name = 'reservationsapp/create_reservation.html'
     user = request.user
     client, created = Client.objects.get_or_create(user=user)
 
-    # If an id is provided, the form edit the reservation, else it creates a new one
     if if_number:
         reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
         template_name = 'reservationsapp/edit_reservation.html'
     else:
         reservation = Reservation(client=client)
 
-    # Prepare forms
     client_form = ClientForm(request.POST or None, instance=client)
     reservation_form = ReservationForm(request.POST or None, instance=reservation, user=request.user)
 
     if request.method == 'POST':
         if client_form.is_valid() and reservation_form.is_valid():
-            # Save forms
             client_form.save()
             reservation = reservation_form.save(commit=False)
             reservation.client = client
             reservation.save()
 
-            # Handle tickets (deletion and re-creation)
             Ticket.objects.filter(reservation=reservation).delete()
             
             passengers = reservation_form.cleaned_data['passengers']
@@ -203,20 +185,8 @@ def edit_reservation(request, if_number=None):
                     )
             return redirect('reservations:reservation_detail', if_number=reservation.if_number)
     
-    # create a list of routes which are to be shown on the map
-    
-    ### EXAMPLE CODE ###
-    routes = Trajet.objects.all()
-    ### EXAMPLE CODE ###
-    
-    stations = []
-    
-    # loop through routes and append departure station and arrival station to the stations list
-    for route in routes:
-        stations.append(Gare.objects.get(id=route.depgare.id))
-        stations.append(Gare.objects.get(id=route.arrgare.id))
-    
-    # serialize list of stations
+    routes = Journey.objects.all()
+    stations = [Station.objects.get(id=route.route.departure_station.id) for route in routes]
     serialized_stations = serializers.serialize("json", stations)
 
     return render(request, template_name, {
@@ -224,17 +194,61 @@ def edit_reservation(request, if_number=None):
         'reservation_form': reservation_form,
         'stations': serialized_stations
     })
-    
+
 @login_required
 def delete_reservation(request, if_number):
+    """
+    Une vue pour supprimer une réservation.
+
+    Args:
+        if_number (Char): L'identifiant de la réservation.
+    """
     reservation = get_object_or_404(Reservation, if_number=if_number, client=request.user.client)
     reservation.delete()
     messages.success(request, "Réservation annulée avec succès.")
     return redirect('reservations:reservations')
 
+@login_required
+def create_passager(request):
+    """
+    Une vue utilisée pour créer un nouveau passager associé au client qui ouvre la vue, en utilisant le formulaire Passenger.
+    """
+    if request.method == 'POST':
+        form = PassagerForm(request.POST)
+        if form.is_valid():
+            passager = form.save(commit=False)
+            passager.user = request.user 
+            passager.save()
+            return redirect('reservations:view_passagers')
+    else:
+        form = PassagerForm()
+    return render(request, 'reservationsapp/create_passager.html', {'form': form})
 
-    
-# Passengers
+@login_required
+def view_passagers(request):
+    """
+    Une vue pour afficher tous les passagers appartenant à un client.
+    """
+    passagers = Passager.objects.filter(user=request.user) 
+    return render(request, 'reservationsapp/view_passagers.html', {'passagers': passagers})
+
+@login_required
+def edit_passager(request, passager_id):
+    """
+    Une vue pour modifier les informations d'un passager en utilisant le formulaire Passenger.
+
+    Args:
+        passager_id (int): L'identifiant du passager.
+    """
+    passager = get_object_or_404(Passager, id=passager_id, user=request.user)
+    if request.method == 'POST':
+        form = PassagerForm(request.POST, instance=passager)
+        if form.is_valid():
+            form.save()
+            return redirect('reservations:view_passagers')
+    else:
+        form = PassagerForm(instance=passager)
+    return render(request, 'reservationsapp/edit_passager.html', {'form': form})
 
 def get_passager_details(request, passager_id):
     """
@@ -253,56 +267,14 @@ def get_passager_details(request, passager_id):
         return JsonResponse(data)
     except Passager.DoesNotExist:
         return JsonResponse({'error': 'Passager not found'}, status=404)
-    
-@login_required
-def create_passager(request):
-    """
-    A view used to create a new passenger associated to the client that opens the view, using the Passenger form"
-    """
-    if request.method == 'POST':
-        form = PassagerForm(request.POST)
-        if form.is_valid():
-            passager = form.save(commit=False)
-            passager.user = request.user 
-            passager.save()
-            return redirect('reservations:view_passagers')
-    else:
-        form = PassagerForm()
-    return render(request, 'reservationsapp/create_passager.html', {'form': form})
-
-@login_required
-def view_passagers(request):
-    """
-    A view to display all the passengers belonging to a client
-    """
-    passagers = Passager.objects.filter(user=request.user) 
-    return render(request, 'reservationsapp/view_passagers.html', {'passagers': passagers})
-
-@login_required
-def edit_passager(request, passager_id):
-    """
-    A view to edit a passenger information using the Passenger form.
-
-    Args:
-        passager_id (int): The id of the passenger
-    """
-    passager = get_object_or_404(Passager, id=passager_id, user=request.user)
-    if request.method == 'POST':
-        form = PassagerForm(request.POST, instance=passager)
-        if form.is_valid():
-            form.save()
-            return redirect('reservations:view_passagers')
-    else:
-        form = PassagerForm(instance=passager)
-    return render(request, 'reservationsapp/edit_passager.html', {'form': form})
 
 @login_required
 def delete_passager(request, passager_id):
     """
-    A view to delete a passenger. it returns an error in case the passenger is linked to an active reservation.
+    Une vue pour supprimer un passager.
 
     Args:
-        passager_id (Int): The id of the passenger
+        passager_id (Int): L'identifiant du passager.
     """
     if request.user.is_staff:
         passager = get_object_or_404(Passager, id=passager_id)
@@ -315,12 +287,11 @@ def delete_passager(request, passager_id):
         messages.success(request, "Passager supprimé avec succès.")
     return redirect('reservations:view_passagers')
 
-# Staff view linked to stats view template only accessible to staff members
 @staff_member_required
 def collaborator(request):
     """
-    A view used to display statistical information for a website admin.
-    It relies on the 'advanced_search' view to query data for the charts.
+    Une vue utilisée pour afficher des informations statistiques pour un administrateur de site.
+    Elle repose sur la vue 'advanced_search' pour interroger les données pour les graphiques.
     """
     type = 'reservations_by_day'
     keyword = ''

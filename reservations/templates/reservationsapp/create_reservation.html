@@ -22,13 +22,13 @@
         {% csrf_token %}
         <h4>Détails client</h4>
         <div class="d-flex justify-content-between mt-4">
-        {{ client_form.as_p }}
+            {{ client_form.as_p }}
         </div>
         <h4>Détails de la réservation</h4>
         {{ reservation_form.as_p }}
-        <p>Si vous n'avez enregistré aucun passager • <a href="{% url 'reservations:create_passager' %}"class="btn btn-primary">cliquez ici</a></p>
+        <p>Si vous n'avez enregistré aucun passager • <a href="{% url 'reservations:create_passager' %}" class="btn btn-primary">cliquez ici</a></p>
         <button type="submit" class="btn btn-success">Enregistrer</button>
-    </form>
+    </form>    
     <div id="map" class="map"></div>
     <button id="zoom-out" class="btn btn-primary">Zoom out</button>
     <button id="zoom-in" class="btn btn-primary">Zoom in</button>
@@ -45,10 +45,10 @@
     for (let i = 0; i < stations.length; i=i+2) {
 
         // get coordinates from stations
-        const lat1 = stations[i].fields.lat
-        const long1 = stations[i].fields.long
-        const lat2 = stations[i+1].fields.lat
-        const long2 = stations[i+1].fields.long
+        const lat1 = stations[i].fields.latitude
+        const long1 = stations[i].fields.longitude
+        const lat2 = stations[i+1].fields.latitude
+        const long2 = stations[i+1].fields.longitude
 
         // create point feature from coordinates
         const point_origin = new ol.Feature(new ol.geom.Point([long1, lat1]));
