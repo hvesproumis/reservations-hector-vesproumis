@@ -278,6 +278,7 @@ def advanced_search(request):
         dataset = Reservation.objects.annotate(day=TruncDay('reservation_date')).values('day').annotate(count=Count('id')).order_by('day')
         data = [{'name': row['day'].strftime('%Y-%m-%d'), 'y': row['count']} for row in dataset]
         series = [{'name': 'Réservations', 'data': data}]
+        
         options['legend'] = {'enabled': 'false'}
 
     elif type_search == 'reservations_by_route':
@@ -301,8 +302,6 @@ def advanced_search(request):
             'legend': {'enabled': False}
         }
         return JsonResponse(chart)
-
-
     
     elif type_search == 'list_reservations':
         data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
@@ -312,10 +311,32 @@ def advanced_search(request):
         data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
 
     elif type_search == 'occupancy_rate':
-        data = Reservation.objects.filter(journey__route=keyword).aggregate(occupancy_rate=Sum('passenger_count') / 500 * 100)
-
+        chart_type = 'column'
+        title = 'Taux de remplissage par trajets'
+        subtitle = ''
+        xAxis = {'type': 'category'}
+        yAxis = {
+            'allowDecimals': 'false',
+            'title': {'text': ''}
+        }
+        
+        dataset = Reservation.objects.filter(journey__route=keyword).aggregate(occupancy_rate=Sum('passenger_count') / 500 * 100)
+        data = [{'name': row['keyword'].strftime('%Y-%m-%d'), 'y': row['occupancy_rate']} for row in dataset]
+        series = [{'name': 'keyword', 'data': data}]
+        
     elif type_search == 'station_frequency':
-        data = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
+        chart_type = 'column'
+        title = 'Taux de passage par une gare'
+        subtitle = ''
+        xAxis = {'type': 'category'}
+        yAxis = {
+            'allowDecimals': 'false',
+            'title': {'text': ''}
+        }
+        
+        dataset = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
+        data = [{'name': row['keyword'].strftime('%Y-%m-%d'), 'y': row['frequency']} for row in dataset]
+        series = [{'name': 'keyword', 'data': data}]
 
     else:
         return JsonResponse({}) 
