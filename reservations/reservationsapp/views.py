@@ -75,12 +75,12 @@ def journeys(request):
     """
     form = JourneySearchForm(request.GET or None)
     journeys = Journey.objects.all().order_by('departure_date_time')
-
+    best_route = None
+    
     if form.is_valid():
         choice = form.cleaned_data['choice']
         station = form.cleaned_data['station']
         depart_date_time = form.cleaned_data['depart_date_time']
-        best_route = None
 
         if choice == 'depart':
             if station:
