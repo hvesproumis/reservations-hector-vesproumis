@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Route, Client, Reservation, Passager, Journey, Ticket, Station
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
@@ -69,41 +70,28 @@ def journeys(request):
         elif choice == 'arrivee':
             journeys = journeys.filter(route__arrival_station=station)
 
-    start_point = form.cleaned_data.get("depart")
-    end_point = form.cleaned_data.get("arrivee")
-    best_route = None
+        start_point = form.cleaned_data.get("depart")
+        end_point = form.cleaned_data.get("arrivee")
+        best_route = None
 
-    if start_point and end_point:  # Check that both points are provided
-        #Generate a distance graph
-        graph_distance = Graph("distance") #later include same but with cost etc.
-        graph_distance.generate_graph()
+        if start_point and end_point:  # Check that both points are provided
+            #Generate a distance graph
+            graph_distance = Graph("distance") #later include same but with cost etc.
+            graph_distance.generate_graph()
 
-        try:
-            # Solve for the best route (shortest path)
-            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
-        except Exception as e:
-            print(f"Error finding shortest path: {e}")
-
-    start_point = form.cleaned_data.get("depart")
-    end_point = form.cleaned_data.get("arrivee")
-    best_route = None
-
-    if start_point and end_point:  # Check that both points are provided
-        #Generate a distance graph
-        graph_distance = Graph("distance") #later include same but with cost etc.
-        graph_distance.generate_graph()
-
-        try:
-            # Solve for the best route (shortest path)
-            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
-        except Exception as e:
-            print(f"Error finding shortest path: {e}")
+            try:
+                # Solve for the best route (shortest path)
+                best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
+            except Exception as e:
+                print(f"Error finding shortest path: {e}")
+                
+        if best_route:
+            return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
 
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    if best_route:
-        return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
+    
     return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj})
 
 #Réservations
@@ -138,56 +126,50 @@ def reservation_detail(request, if_number):
 
 @login_required
 def edit_reservation(request, if_number=None):
-    client, created = Client.objects.update_or_create(
-        user=request.user,
-        defaults={
-            'first_name': request.user.first_name or 'Default First Name',
-            'last_name': request.user.last_name or 'Default Last Name',
-            'email': request.user.email or 'email@example.com',
-            'address': 'Entrez votre adresse'
-        }
-    )
+    # Initialize variables
+    template_name = 'reservationsapp/create_reservation.html'
+    user = request.user
+    client, created = Client.objects.get_or_create(user=user)
 
+    # Fetch or initialize the reservation
     if if_number:
-        if request.user.is_staff:
-            reservation = get_object_or_404(Reservation, if_number=if_number)
-        else:
-            reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
-        template_name = 'reservationsapp/edit_reservation.html'  
+        reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
+        template_name = 'reservationsapp/edit_reservation.html'
     else:
         reservation = Reservation(client=client)
-        template_name = 'reservationsapp/create_reservation.html'  
 
+    # Prepare forms
     client_form = ClientForm(request.POST or None, instance=client)
     reservation_form = ReservationForm(request.POST or None, instance=reservation, user=request.user)
 
     if request.method == 'POST':
         if client_form.is_valid() and reservation_form.is_valid():
-            client = client_form.save()  
+            # Save forms
+            client_form.save()
             reservation = reservation_form.save(commit=False)
-            reservation.client = client  
+            reservation.client = client
             reservation.save()
-            
-            # Delete existing tickets before creating new ones
-            tickets = Ticket.objects.all().filter(reservation=reservation)
-            for ticket in tickets:
-                ticket.delete()
-            
+
+            # Handle tickets (deletion and re-creation)
+            Ticket.objects.filter(reservation=reservation).delete()
             passengers = reservation_form.cleaned_data['passengers']
             journeys = reservation_form.cleaned_data['journeys']
             for passenger in passengers:
                 for journey in journeys:
-                    ticket = Ticket()
-                    ticket.reservation = reservation
-                    ticket.journey = journey
-                    ticket.passenger = passenger
-                    ticket.save()
+                    Ticket.objects.create(
+                        reservation=reservation,
+                        journey=journey,
+                        passenger=passenger,
+                        car=random.randint(1, 14),
+                        seat=random.randint(1, 120)
+                    )
             return redirect('reservations:reservation_detail', if_number=reservation.if_number)
 
     return render(request, template_name, {
         'client_form': client_form,
         'reservation_form': reservation_form
     })
+
 
 
     
