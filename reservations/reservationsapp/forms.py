@@ -1,14 +1,28 @@
+"""
+This file contains custom forms used in the different views
+"""
+
 from django import forms
 from .models import Station, Reservation, Journey, Passager, Client
-from django.forms import ModelForm, inlineformset_factory
+from django.forms import ModelForm, inlineformset_factory, DateTimeInput
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-
+from django.core.exceptions import ValidationError
+from datetime import datetime
 
 
 #Gestion du client
 
 class ClientForm(ModelForm):
+    """
+    A form to allow a client to verify its informations
+
+    Args (See Client and User models):
+        first_name
+        last_name
+        email
+        address
+    """
     first_name = forms.CharField(
         max_length=100,
         required=False,
@@ -42,9 +56,20 @@ class ClientForm(ModelForm):
             self.fields['last_name'].initial = self.instance.user.last_name
             self.fields['email'].initial = self.instance.user.email
 
-#Gestion de l'utilisateur
         
+# User management
 class SignUpForm(UserCreationForm):
+    """
+    A form to create a new client
+
+    Fields (see Client and User models):
+    username
+        first_name
+        last_name
+        email
+        password1 : Password of the user
+        password2 : Password typed again for verification
+    """
     first_name = forms.CharField(max_length=30, required=True, help_text='Requis.', label='Prénom')
     last_name = forms.CharField(max_length=30, required=True, help_text='Requis.', label='Nom')
     email = forms.EmailField(required=True, help_text='Requis', label='E-mail')
@@ -59,6 +84,14 @@ class SignUpForm(UserCreationForm):
         }
 
 class UserUpdateForm(forms.ModelForm):
+    """
+    A form to update user information
+
+    Fields (see Client and User models):
+        first_name
+        last_name
+        email
+    """
     first_name = forms.CharField(max_length=30, required=False, label='Prénom')
     last_name = forms.CharField(max_length=30, required=False, label='Nom')
     email = forms.EmailField(required=True, label='E-mail')
@@ -68,19 +101,55 @@ class UserUpdateForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email']
 
 
-#Gestion de la recherche trajet
-
+# Reservation and journey management
 class JourneySearchForm(forms.Form):
-    station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Choisir une gare")
-    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
+    """
+    A form to search for a specific journey using a departure or arrival station
 
+    Fields:
+        station (Station): The desired departure/arrival station
+        choice (depart/arrivee): A choice to specify if the station is a departure or an arrival station for the query
+    """
+    station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Choisir une gare")
+    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée'), ('dep_and_arrival', 'Départ et Arrivée')), required=False, label="Type de trajet")
+    
+    # Adding the DateTimeField for departure date and time
+    depart_date_time = forms.DateTimeField(
+        required=False,
+        label="Choisir la date et l'heure de départ",
+        widget=DateTimeInput(
+            format='%Y-%m-%d %H:%M',  # Format for the date and time input
+            attrs={'type': 'datetime-local'}  # Ensures HTML5 date-time picker
+        )
+    )
+
+    def clean_depart_date_time(self):
+        # Get the departure date/time from the form -> checked with isvalid method
+        depart_date_time = self.cleaned_data.get('depart_date_time')
+        
+        if depart_date_time and depart_date_time < datetime.now():
+            # If it's earlier than the current time, raise a validation error
+            raise ValidationError("La date et l'heure de départ ne peuvent pas être dans le passé.")
+        
+        
+        return depart_date_time
+
+
+# Adding the DateTimeField for departure date and time
 #Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):
+    """
+    A form to create a new reservation
+
+    Fields:
+        passengers (Passenger): The passengers to assign to the reservation
+        journeys (see Reservation model)
+    """
     passengers = forms.ModelMultipleChoiceField(
         queryset=Passager.objects.none(),  # Make sure this queryset is properly set up in the __init__ method.
         label="Sélectionner des passagers pré-enregistrés",
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+        widget=forms.CheckboxSelectMultiple()
     )
 
     class Meta:
@@ -99,9 +168,15 @@ class ReservationForm(forms.ModelForm):
             self.fields['journeys'].queryset = Journey.objects.all()  # Adjust as necessary for your business logic
 
 
-#Formulaire passager
-
 class PassagerForm(forms.ModelForm):
+    """
+    A form to create or edit a passenger linked to a client
+
+    Fields (see Passenger model):
+        first_name
+        last_name
+        date_of_birth
+    """
     class Meta:
         model = Passager
         fields = ['first_name', 'last_name', 'date_of_birth']
