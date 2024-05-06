@@ -39,34 +39,6 @@
         fetchAndDisplayChart();
     });
 
-    function fetchAndDisplayChart() {
-        const type = document.getElementById('chartType').value;
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
 
-        let url = `{% url 'reservations:advanced_search' %}?type=${type}&start_date=${startDate}&end_date=${endDate}`;
-        
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (type === 'reservations_by_day') {
-                    data.chart = { type: 'column' };  // Column chart for daily reservations
-                } else if (type === 'reservations_by_route') {
-                    data.chart = { type: 'pie' };  // Pie chart for reservations by route
-                    data.plotOptions = {
-                        pie: {
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: true,
-                                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                            }
-                        }
-                    };
-                }
-                Highcharts.chart('container', data);
-            })
-            .catch(error => console.error('Error loading the chart data:', error));
-    }
-</script>
+
 {% endblock %}

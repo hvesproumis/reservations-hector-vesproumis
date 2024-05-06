@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from .algorithms import Graph
 from django.contrib import messages
 from django.utils.dateparse import parse_date
 
@@ -52,6 +53,11 @@ def update_profile(request):
 #Trajets
 
 def journeys(request):
+    """
+        ->User can look for routes linked to a departure, arrival or both
+        ->if both departure and arrival provided, best options are filtered
+
+    """
     form = JourneySearchForm(request.GET or None)
     journeys = Journey.objects.select_related('route').all().order_by('departure_date_time')
 
@@ -63,10 +69,41 @@ def journeys(request):
         elif choice == 'arrivee':
             journeys = journeys.filter(route__arrival_station=station)
 
+    start_point = form.cleaned_data.get("depart")
+    end_point = form.cleaned_data.get("arrivee")
+    best_route = None
+
+    if start_point and end_point:  # Check that both points are provided
+        #Generate a distance graph
+        graph_distance = Graph("distance") #later include same but with cost etc.
+        graph_distance.generate_graph()
+
+        try:
+            # Solve for the best route (shortest path)
+            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
+        except Exception as e:
+            print(f"Error finding shortest path: {e}")
+
+    start_point = form.cleaned_data.get("depart")
+    end_point = form.cleaned_data.get("arrivee")
+    best_route = None
+
+    if start_point and end_point:  # Check that both points are provided
+        #Generate a distance graph
+        graph_distance = Graph("distance") #later include same but with cost etc.
+        graph_distance.generate_graph()
+
+        try:
+            # Solve for the best route (shortest path)
+            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
+        except Exception as e:
+            print(f"Error finding shortest path: {e}")
+
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    if best_route:
+        return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
     return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj})
 
 #Réservations
@@ -112,7 +149,10 @@ def edit_reservation(request, if_number=None):
     )
 
     if if_number:
-        reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
+        if request.user.is_staff:
+            reservation = get_object_or_404(Reservation, if_number=if_number)
+        else:
+            reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
         template_name = 'reservationsapp/edit_reservation.html'  
     else:
         reservation = Reservation(client=client)
@@ -274,6 +314,7 @@ def advanced_search(request):
 
     
     elif type_search == 'list_reservations':
+        data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
         data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
 
     elif type_search == 'list_passengers':

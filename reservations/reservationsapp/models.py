@@ -8,7 +8,7 @@ def generate_if_number():
     import string
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-class Gare(models.Model):
+class Station(models.Model):
     """
     city: charField storing the name of the city [prev: ville] 
     station_name: charField with name of station [nomGare]
@@ -18,7 +18,7 @@ class Gare(models.Model):
     """
 
     city = models.CharField(max_length=200)
-    station_name = models.CharField(max_length=200)
+    station_name = models.CharField(max_length=200, null=True, blank=True)
     longitude = models.FloatField(max_length=10,null = True, blank=True)
     latitude = models.FloatField(max_length=10,null = True, blank=True)
     def __str__(self):
@@ -46,7 +46,7 @@ class Passager(models.Model):
 
 class Route(models.Model):
     """
-    departure_station: gets the departure station from the Gare model
+    departure_station: gets the departure station from the Station model
     arrival_station: gets the arrival station from ''
     distance: contains the distance between the stations in km 
         with the distance computed as the crow flies
@@ -56,13 +56,13 @@ class Route(models.Model):
         =acos(sin(lat1)*sin(lat2)+cos(lat1)*cos(lat2)*cos(lon2-lon1))*6371
     ->latitudes are assumed in degrees so change to rads
     """
-    departure_station = models.ForeignKey(Gare, on_delete=models.CASCADE, related_name='departure_station')
-    arrival_station = models.ForeignKey(Gare, on_delete=models.CASCADE, related_name='arrival_station')
+    departure_station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='departure_station')
+    arrival_station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='arrival_station')
     def get_distance(self):
-        lat1 = self.departure_station.latitude()
-        long1 = self.departure_station.longitude()
-        lat2 = self.arrival_station.latitude()
-        long2 = self.arrival_station.longitude()
+        lat1 = self.departure_station.latitude
+        long1 = self.departure_station.longitude
+        lat2 = self.arrival_station.latitude
+        long2 = self.arrival_station.longitude
 
         lat1_rad =  radians(lat1)
         long1_rad = radians(long1)
@@ -83,8 +83,8 @@ class Journey(models.Model):
 
     """
     route = models.ForeignKey(Route, on_delete=models.CASCADE,related_name='route')
-    departure_date_time = models.DateTimeField(db_comment="Date et heure de départ",)
-    arrival_date_time = models.DateTimeField(db_comment="Date et heure d'arrivée",)
+    departure_date_time = models.DateTimeField(help_text="Date et heure de départ",)
+    arrival_date_time = models.DateTimeField(help_text="Date et heure d'arrivée",)
     def __str__(self):
         return f"Trajet de {self.route.departure_station} à {self.route.arrival_station} le {self.departure_date_time.strftime('%Y-%m-%d %H:%M')} - Arrivée le {self.arrival_date_time.strftime('%Y-%m-%d %H:%M')}"
 
