@@ -9,7 +9,7 @@
 
 <div class="container pt-2 my-2">
     <p><b>Numéro de réservation :</b> {{ reservation.if_number }}</p> 
-    <p><b>Prénom et nom pour la facturation :</b> {{ reservation.client.first_name }} {{ reservation.client.last_name }}</p>
+    <p><b>Prénom et nom pour la facturation :</b> {{ reservation.client.user.first_name }} {{ reservation.client.user.last_name }}</p>
     <p><b>Date de la réservation :</b> {{ reservation.reservation_date|date:"d-m-Y" }}</p>
     <p>Billets : </p>
     <table class="table table-bordered">

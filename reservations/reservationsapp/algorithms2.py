@@ -5,7 +5,7 @@
 import sys
 import math
 from math import sin, cos, acos, radians
-from .models import Gare, Journey, Route
+from .models import Station, Journey, Route
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -32,7 +32,7 @@ class Graph():
         """
 
         self.depart_date_time = depart_date_time
-        self.stations = Gare.objects.all()
+        self.stations = Station.objects.all()
         end_of_day = depart_date_time.replace(hour=23, minute=59, second=59, microsecond=999999)
         #filter the required journeys -> here only look till end of day
         self.journeys = Journey.objects.filter( #routes can be accessed through journey so no need to query routes

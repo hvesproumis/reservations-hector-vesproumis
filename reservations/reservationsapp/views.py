@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Route, Client, Reservation, Passager, Journey, Ticket, Gare
+from .models import Route, Client, Reservation, Passager, Journey, Ticket, Station
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory

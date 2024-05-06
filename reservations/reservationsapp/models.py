@@ -26,13 +26,13 @@ class Station(models.Model):
 
 class Client(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='client')
-    first_name = models.CharField(max_length=100, verbose_name="Prénom")
-    last_name = models.CharField(max_length=100, verbose_name="Nom")
-    email = models.EmailField(verbose_name="Email")
+    #first_name = models.CharField(max_length=100, verbose_name="Prénom")
+    #last_name = models.CharField(max_length=100, verbose_name="Nom")
+    #email = models.EmailField(verbose_name="Email")
     address = models.CharField(max_length=255, verbose_name="Adresse")
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.user.first_name} {self.user.last_name}"
     
 
 class Passager(models.Model):

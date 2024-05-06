@@ -9,15 +9,38 @@ from django.contrib.auth.forms import UserCreationForm
 #Gestion du client
 
 class ClientForm(ModelForm):
+    first_name = forms.CharField(
+        max_length=100,
+        required=False,
+        label='Prénom',
+        widget=forms.TextInput(attrs={'readonly': 'readonly'})
+    )
+    last_name = forms.CharField(
+        max_length=100,
+        required=False,
+        label='Nom',
+        widget=forms.TextInput(attrs={'readonly': 'readonly'})
+    )
+    email = forms.EmailField(
+        required=False,
+        label='Email',
+        widget=forms.EmailInput(attrs={'readonly': 'readonly'})
+    )
+
     class Meta:
         model = Client
         fields = ['first_name', 'last_name', 'email', 'address']
         widgets = {
-            'first_name': forms.TextInput(attrs={'readonly': 'readonly'}),
-            'last_name': forms.TextInput(attrs={'readonly': 'readonly'}),
-            'email': forms.EmailInput(attrs={'readonly': 'readonly'}),
-            'address': forms.TextInput() 
+            'address': forms.TextInput()
         }
+
+    def __init__(self, *args, **kwargs):
+        super(ClientForm, self).__init__(*args, **kwargs)
+        # Initialisez les champs first_name, last_name, et email avec les valeurs de l'utilisateur lié
+        if self.instance and self.instance.user:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['email'].initial = self.instance.user.email
 
 #Gestion de l'utilisateur
         

@@ -3,7 +3,7 @@
 
 """
 import sys
-from .models import Gare, Journey, Route
+from .models import Station, Journey, Route
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -25,7 +25,7 @@ class Graph():
             ->start_point / end_point required for the efficient creation of a cleaner graph
             ->start and end point correspond to a Gare object
         """
-        self.stations = Gare.objects.all()
+        self.stations = Station.objects.all()
         self.journeys = Journey.objects.all() #route obj with times
         self.routes = Route.objects.all()
         self.G = nx.DiGraph()
