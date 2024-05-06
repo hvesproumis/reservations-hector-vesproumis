@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block content %}
+
+{% load static %}
+<link href="{% static 'css/reservationsapp/list_journeys.css' %}" rel="stylesheet">
 <style>
     .header-logo {
         text-align: center;
@@ -25,6 +28,13 @@
     .btn-primary {
         margin-top: 20px;
     }
+    .optimal-path {
+        padding: 20px;
+        border: 1px solid #bb1010;
+        border-radius: 8px;
+        background: #00ffff;
+        margin-bottom: 20px;
+    }
 </style>
 
 <div class="header-logo">
@@ -40,17 +50,32 @@
         </div>
     </div>
 
-    <div class="trajets-section">
-        <h3>Trajets disponibles</h3>
-        {% for trajet in page_obj %}
-        <div class="card mb-2">
-            <div class="card-body">
-                <p>{{ trajet.depgare.ville }} {{ trajet.depgare.nomgare }} à {{ trajet.arrgare.ville }} {{ trajet.arrgare.nomgare }} - Départ : {{ trajet.depdh|date:"d M Y H:i" }}</p>
-            </div>
-        </div>
-        {% empty %}
-            <p>Aucun trajet disponible.</p>
+    
+
+ <!-- Display the optimal path if best_route is available -->
+{% if best_route %}
+<div class="optimal-path">
+    <h4>Optimal Path</h4>
+    <p>Optimal path from start to end:</p>
+    <ul>
+        {% for station in best_route %}
+        <li>{{ station }}</li>
         {% endfor %}
+    </ul>
+</div>
+{% else %}
+ <!-- Otherwise, display the list of journeys -->
+<div class="trajets-section">
+    <h3>Trajets disponibles</h3>
+    {% for journey in page_obj %}
+    <div class="card mb-2">
+        <div class="card-body">
+            <p>{{ journey.route.departure_station.city }} {{ journey.route.departure_station.station_name }} à {{ journey.route.arrival_station.city }} {{ journey.route.arrival_station.station_name }} - Départ : {{ journey.departure_date_time|date:"d M Y H:i" }}</p>
+        </div>
+    </div>
+    {% empty %}
+        <p>Aucun trajet disponible.</p>
+    {% endfor %}
         
         <!-- Contrôles de pagination -->
         {% if page_obj.has_other_pages %}
@@ -77,8 +102,9 @@
         </ul>
         {% endif %}
     </div>
+    {% endif %}
     <div class="text-center mb-2">
-        <a href="{% url 'create_reservation' %}" class="btn btn-primary">Nouvelle réservation</a>
+        <a href="{% url 'reservations:create_reservation' %}" class="btn btn-primary">Nouvelle réservation</a>
     </div>
 </div>
 {% endblock %}

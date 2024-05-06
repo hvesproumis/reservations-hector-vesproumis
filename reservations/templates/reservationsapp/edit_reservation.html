@@ -3,23 +3,10 @@
 {% block title %}Modifier la réservation{% endblock %}
 
 {% block content %}
-<style>
-    .form-section {
-        background-color: #ffffff;
-        padding: 20px; 
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        margin-bottom: 20px; 
-    }
-    .form-section h4 {
-        margin-top: 0;
-        color: #333; 
-    }
-    .btn-primary {
-        width: auto; 
-        padding: 10px 20px; 
-    }
-</style>
+
+{% load static %}
+<link href="{% static 'css/reservationsapp/edit_reservation.css' %}" rel="stylesheet">
+
 <div class="container mt-4 mb-4">
     <h2>Modifier la réservation</h2>
     <form method="post" class="mt-4">

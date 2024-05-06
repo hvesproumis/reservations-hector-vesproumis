@@ -13,7 +13,8 @@ SECRET_KEY = "django-insecure-l^g_*1wg13eomp)_px2@i1!$qf&)hn()+@f%^4=hgm98#6$=+d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ '127.0.0.1', 'localhost']
+
 
 
 # Application definition
@@ -95,11 +96,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "fr-fr"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Paris"
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False #was True :: If USE_TZ is True, Django will store the datetime information with UTC time zone, and if it is False, it will store it with the local time zone
 
 
 # Static files (CSS, JavaScript, Images)
@@ -113,7 +114,7 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-LOGIN_REDIRECT_URL = '/trajets/'  
+LOGIN_REDIRECT_URL = '/reservations/journeys/'  
 LOGOUT_REDIRECT_URL = '/login/'  
 
 

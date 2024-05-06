@@ -2,7 +2,71 @@
 {% load static %}
 
 {% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <label for="startDate" class="form-label">Date de début :</label>
+        <input type="date" id="startDate" class="form-control">
+
+        <label for="endDate" class="form-label">Date de fin :</label>
+        <input type="date" id="endDate" class="form-control">
+
+        <label for="chartType" class="form-label">Sélectionner la statistique :</label>
+        <select class="form-select" id="chartType">
+            <option value="reservations_by_day">Réservations par jour</option>
+            <option value="reservations_by_route">Réservations par route</option>
+        </select>
+    </div>
+
+    <button class="btn btn-primary mb-3" onclick="fetchAndDisplayChart()">Charger les données</button>
+
+    <figure class="highcharts-figure">
+        <div id="container" data-url="{% url 'reservations:advanced_search' %}?type=$type&start_date=$startDate&end_date=$endDate"></div>
+    </figure>
+</div>
 
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default dates
+        const currentDate = new Date();
+        const pastDate = new Date(currentDate.setMonth(currentDate.getMonth() - 6)).toISOString().split('T')[0];
+        const futureDate = new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0];
 
+        document.getElementById('startDate').value = pastDate;
+        document.getElementById('endDate').value = futureDate;
+
+        // Load the default chart on initial page load with default dates
+        fetchAndDisplayChart();
+    });
+
+    function fetchAndDisplayChart() {
+        const type = document.getElementById('chartType').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        let url = `{% url 'reservations:advanced_search' %}?type=${type}&start_date=${startDate}&end_date=${endDate}`;
+        
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (type === 'reservations_by_day') {
+                    data.chart = { type: 'column' };  // Column chart for daily reservations
+                } else if (type === 'reservations_by_route') {
+                    data.chart = { type: 'pie' };  // Pie chart for reservations by route
+                    data.plotOptions = {
+                        pie: {
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+                            dataLabels: {
+                                enabled: true,
+                                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                            }
+                        }
+                    };
+                }
+                Highcharts.chart('container', data);
+            })
+            .catch(error => console.error('Error loading the chart data:', error));
+    }
+</script>
 {% endblock %}
