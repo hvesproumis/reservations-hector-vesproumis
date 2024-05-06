@@ -115,16 +115,21 @@ def edit_reservation(request, if_number=None):
             reservation.passager = reservation_form.cleaned_data['existing_passager']
             reservation.save()
             return redirect('reservation_detail', if_number=reservation.if_number)
-        
+    
+    # create a list of routes which are to be shown on the map
+    
+    ### EXAMPLE CODE ###
     routes = Trajet.objects.all()
-    # routes = []
-    # routes.append(route)
+    ### EXAMPLE CODE ###
+    
     stations = []
     
+    # loop through routes and append departure station and arrival station to the stations list
     for route in routes:
         stations.append(Gare.objects.get(id=route.depgare.id))
         stations.append(Gare.objects.get(id=route.arrgare.id))
     
+    # serialize list of stations
     serialized_stations = serializers.serialize("json", stations)
 
     return render(request, template_name, {

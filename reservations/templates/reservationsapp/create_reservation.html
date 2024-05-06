@@ -35,20 +35,26 @@
 </div>
 <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v9.1.0/ol/dist/ol.js"></script>
 <script>
+    // deserialize data
     var stations = {{ stations | safe }}
 
+    // initialize vector source
     const vectorSource = new ol.source.Vector();
 
+    // loop through the two consecutive stations of each route
     for (let i = 0; i < stations.length; i=i+2) {
 
+        // get coordinates from stations
         const lat1 = stations[i].fields.lat
         const long1 = stations[i].fields.long
         const lat2 = stations[i+1].fields.lat
         const long2 = stations[i+1].fields.long
 
+        // create point feature from coordinates
         const point_origin = new ol.Feature(new ol.geom.Point([long1, lat1]));
         const point_destination = new ol.Feature(new ol.geom.Point([long2, lat2]));
     
+        // create line feature
         const line_route = new ol.Feature(
         new ol.geom.LineString([
             [long1, lat1],
@@ -56,11 +62,13 @@
         ]),
         );
 
+        // add features to vector source
         vectorSource.addFeature(point_origin);
         vectorSource.addFeature(point_destination);
         vectorSource.addFeature(line_route);
       }
 
+    // create a vector layer based on the respective vector source
     vectorLayer = new ol.layer.Vector({
     source: vectorSource,
     style: {
@@ -74,6 +82,7 @@
     },
     });
 
+    // create basic map with OSM layer and the new vector layer
     const map = new ol.Map({
     layers: [
         new ol.layer.Tile({
@@ -82,16 +91,20 @@
         vectorLayer,
     ],
     target: 'map',
+    // create view centered on France by default (e.g. if no stations are loaded)
     view: new ol.View({
         projection: 'EPSG:4326',
         center: [4, 46.75],
         zoom: 6
     }),
+    // remove all default controls from the map
     controls: []
     });
 
+    // add attribution to OPENLAYERS
     map.addControl(new ol.control.Attribution());
 
+    // fit view to show all routes with defined padding
     extent = vectorSource.getExtent()
     if (extent) {
         map.getView().fit(
@@ -102,12 +115,14 @@
         );
     }
 
+    // implement zoom-out button
     document.getElementById('zoom-out').onclick = function () {
     const view = map.getView();
     const zoom = view.getZoom();
     view.setZoom(zoom - 1);
     };
 
+    // implement zoom-in button
     document.getElementById('zoom-in').onclick = function () {
     const view = map.getView();
     const zoom = view.getZoom();
