@@ -2,6 +2,10 @@
 This file contains all the views and the logic to make the application work
 """
 import random
+import pandas
+from datetime import timedelta
+import numpy as np
+
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Client, Reservation, Passager, Journey, Ticket, Route
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
@@ -328,25 +332,49 @@ def advanced_search(request):
         start_date = parse_date(start_date)
     if end_date:
         end_date = parse_date(end_date)
+    # get all days between start_date and end_date
+    days = pandas.date_range(start_date,end_date-timedelta(days=1),freq='d').date.tolist()
 
     # Dictionary containing optional keys for the chart, depending on the the chart wanted
     options = {}
     
+    
     if type_search == 'reservations_by_day':
-        chart_type = 'column'
+        chart_type = 'line'
         title = 'Nombre de réservations effectuées par jour'
         subtitle = ''
-        xAxis = {'type': 'category'}
+        xAxis = {
+            'tickInterval': 7 * 24 * 3600 * 1000, # one week
+            'tickWidth': 0,
+            'gridLineWidth': 1,
+            'labels': {
+                'align': 'left',
+                'x': 3,
+                'y': -3
+            }
+        }
         yAxis = {
             'allowDecimals': 'false',
             'title': {'text': 'Nombre de réservations'}
         }
         
         dataset = Reservation.objects.annotate(day=TruncDay('reservation_date')).values('day').annotate(count=Count('id')).order_by('day')
-        data = [{'name': row['day'].strftime('%Y-%m-%d'), 'y': row['count']} for row in dataset]
+        rows = {} # utilitary dict to find easily a row using the day associated to it
+        for row in dataset:
+            rows[row['day']] = row['count']
+
+        data = []
+        # If the day is present in rows, there were at least one reservation that day, if not, the number of reservations that day is zero
+        for day in days :
+            if day in rows.keys():
+                data.append({'name': day.strftime('%Y-%m-%d'), 'y': rows[day]})
+            else :
+                data.append({'name': day.strftime('%Y-%m-%d'), 'y': 0})
+            
         series = [{'name': 'Réservations', 'data': data}]
         
         options['legend'] = {'enabled': 'false'}
+
 
     elif type_search == 'reservations_by_route':
         queryset = Ticket.objects.filter(
@@ -360,15 +388,23 @@ def advanced_search(request):
         data = [{'name': f"{row['journey__route__departure_station__city']} - {row['journey__route__arrival_station__city']}", 'y': row['count']} for row in queryset]
         series = [{'name': 'Nombre de réservations sur cette route', 'data': data}]
 
-        chart = {
-            'chart': {'type': 'column'},
-            'title': {'text': 'Nombre de réservations par route'},
-            'xAxis': {'type': 'category'},
-            'yAxis': {'title': {'text': 'Nombre de réservations'}, 'allowDecimals': False},
-            'series': series,
-            'legend': {'enabled': False}
+        chart_type ='pie'
+        title = 'Nombre de réservations par route'
+        subtitle = ''
+        xAxis = {'type': 'category'}
+        yAxis = {'title': {'text': 'Nombre de réservations'}, 'allowDecimals': False},
+        options['legend'] = {'enabled': 'false'}
+        
+        options['plotOptions'] = {
+            'pie': {
+                'allowPointSelect': 'true',
+                'cursor': 'pointer',
+                'dataLabels': {
+                    'enabled': 'true',
+                    'format': '<b>{point.name}</b>: {point.percentage:.1f} %'
+                }
+            }
         }
-        return JsonResponse(chart)
     
     elif type_search == 'list_reservations':
         data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
