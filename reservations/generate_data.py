@@ -1,3 +1,7 @@
+"""
+This file contains a small program used to populate the database with new Routes and Journeys automatically
+"""
+
 import os
 import django
 import json
@@ -9,18 +13,22 @@ django.setup()
 
 from reservationsapp.models import Station, Journey, Route
 
-# Votre code pour générer des données ici
 
-# Fonction pour générer des routes et des trajets
 def generate_routes_and_journeys():
+    """
+    A function that generates random routes and journeys using existing stations in the database
+
+    Returns:
+        routes: The created routes
+        journeys: The created journeys
+    """
     routes = []
     journeys = []
     stations = Station.objects.all()
     start_date = datetime(2024, 5, 15)
     end_date = datetime(2024, 5, 31)
 
-    # Assumons 20 routes
-    for i in range(1, 21):
+    for i in range(1, 21): # 20 routes
         departure_station = random.choice(stations)
         arrival_station = random.choice(stations)
         while departure_station == arrival_station:
@@ -37,7 +45,7 @@ def generate_routes_and_journeys():
 
         current_date = start_date
         while current_date <= end_date:
-            for _ in range(4):  # 4 départs par jour
+            for _ in range(4):  # 4 departures a day
                 departure_time = datetime(current_date.year, current_date.month, current_date.day, random.randint(0, 23), random.randint(0, 59))
                 journeys.append({
                     "model": "reservationsapp.journey",
@@ -52,8 +60,10 @@ def generate_routes_and_journeys():
 
     return routes, journeys
 
-# Écrire les données en JSON
 def write_to_json():
+    """
+    Writes routes and journeys into a json file
+    """
     routes, journeys = generate_routes_and_journeys()
     data =  routes + journeys
     with open('add_data.json', 'w') as f:
