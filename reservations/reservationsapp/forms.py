@@ -80,7 +80,7 @@ class ReservationForm(forms.ModelForm):
     passengers = forms.ModelMultipleChoiceField(
         queryset=Passager.objects.none(),  # Make sure this queryset is properly set up in the __init__ method.
         label="Sélectionner des passagers pré-enregistrés",
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+        widget=forms.CheckboxSelectMultiple()
     )
 
     class Meta:
