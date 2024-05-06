@@ -10,6 +10,8 @@ def generate_if_number():
 class Gare(models.Model):
     ville = models.CharField(max_length=200)
     nomgare = models.CharField(max_length=200)
+    lat = models.CharField(max_length=200, default=0)
+    long = models.CharField(max_length=200, default=0)
 
     def __str__(self):
         return f"{self.ville} {self.nomgare}"

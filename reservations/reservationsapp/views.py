@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Trajet, Client, Reservation, Passager
+from .models import Trajet, Client, Reservation, Passager, Gare
 from .forms import TrajetSearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory
@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.core import serializers
 
 #Utilisateur
 
@@ -114,10 +115,22 @@ def edit_reservation(request, if_number=None):
             reservation.passager = reservation_form.cleaned_data['existing_passager']
             reservation.save()
             return redirect('reservation_detail', if_number=reservation.if_number)
+        
+    route = Trajet.objects.get(id=1)
+    routes = []
+    routes.append(route)
+    stations = []
+    
+    for route in routes:
+        stations.append(Gare.objects.get(id=route.depgare.id))
+        stations.append(Gare.objects.get(id=route.arrgare.id))
+    
+    serialized_stations = serializers.serialize("json", stations)
 
     return render(request, template_name, {
         'client_form': client_form,
-        'reservation_form': reservation_form
+        'reservation_form': reservation_form,
+        'stations': serialized_stations
     })
 
 
