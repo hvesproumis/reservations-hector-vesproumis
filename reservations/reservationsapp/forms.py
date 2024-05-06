@@ -3,7 +3,8 @@ from .models import Gare, Reservation, Journey, Passager, Client
 from django.forms import ModelForm, inlineformset_factory, DateTimeInput
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-
+from django.core.exceptions import ValidationError
+from datetime import datetime
 
 #Gestion du client
 
@@ -59,6 +60,17 @@ class TrajetSearchForm(forms.Form):
             attrs={'type': 'datetime-local'}  # Ensures HTML5 date-time picker
         )
     )
+
+    def clean_depart_date_time(self):
+        # Get the departure date/time from the form -> checked with isvalid method
+        depart_date_time = self.cleaned_data.get('depart_date_time')
+        
+        if depart_date_time and depart_date_time < datetime.now():
+            # If it's earlier than the current time, raise a validation error
+            raise ValidationError("La date et l'heure de départ ne peuvent pas être dans le passé.")
+        
+        
+        return depart_date_time
 
 
 from django import forms

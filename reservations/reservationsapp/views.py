@@ -65,31 +65,41 @@ def trajets(request):
         choice = form.cleaned_data['choice']
         station = form.cleaned_data['station']
         depart_date_time = form.cleaned_data['depart_date_time']
+        best_route = None
+        routes = Route.objects.all()
+        journeys = Journey.objects.all().order_by('departure_date_time')
 
         if choice == 'depart':
-            routes = routes.filter(departure_station=station)
-            journeys = journeys.filter(route__in=routes)
+            if station:
+                routes = routes.filter(departure_station=station)
+                journeys = journeys.filter(route__in=routes)
         elif choice == 'arrivee':
-            routes = routes.filter(arrival_station=station)
-            journeys = journeys.filter(route__in=routes)
+            if station:
+                routes = routes.filter(arrival_station=station)
+                journeys = journeys.filter(route__in=routes)
         elif choice == 'dep_and_arrival':
             start_station = form.cleaned_data.get("depart")
             end_station = form.cleaned_data.get("arrivee")
-            best_route = None
             
-            graph = Graph(start_station, end_station, depart_date_time)
-            best_route = graph.find_optimal_path(start_station, end_station)
 
+            if start_station and end_station and depart_date_time:
+                graph = Graph(start_station, end_station, depart_date_time)
+                best_route = graph.find_optimal_path(start_station, end_station)
 
-    paginator = Paginator(journeys, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    if best_route:
+        paginator = Paginator(journeys, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+    
+        # Return with the best_route if found, otherwise just the list of journeys
         return render(request, 'reservationsapp/liste_trajets.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
-    return render(request, 'reservationsapp/liste_trajets.html', {'form': form, 'page_obj': page_obj})
+        
+    else:
+         # If form is invalid:
+        return render(request, 'reservationsapp/liste_trajets.html', {'form': form, 'errors': form.errors})
+
 
 #Réservations
-
 @login_required
 def reservations(request):
     if request.user.is_staff:
