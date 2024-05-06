@@ -8,7 +8,7 @@ def generate_if_number():
     import string
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-class Gare(models.Model):
+class Station(models.Model):
     """
     city: charField storing the name of the city [prev: ville] 
     station_name: charField with name of station [nomGare]
@@ -46,7 +46,7 @@ class Passager(models.Model):
 
 class Route(models.Model):
     """
-    departure_station: gets the departure station from the Gare model
+    departure_station: gets the departure station from the Station model
     arrival_station: gets the arrival station from ''
     distance: contains the distance between the stations in km 
         with the distance computed as the crow flies
@@ -56,8 +56,8 @@ class Route(models.Model):
         =acos(sin(lat1)*sin(lat2)+cos(lat1)*cos(lat2)*cos(lon2-lon1))*6371
     ->latitudes are assumed in degrees so change to rads
     """
-    departure_station = models.ForeignKey(Gare, on_delete=models.CASCADE, related_name='departure_station')
-    arrival_station = models.ForeignKey(Gare, on_delete=models.CASCADE, related_name='arrival_station')
+    departure_station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='departure_station')
+    arrival_station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='arrival_station')
     def get_distance(self):
         lat1 = self.departure_station.latitude()
         long1 = self.departure_station.longitude()

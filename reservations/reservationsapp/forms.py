@@ -1,5 +1,5 @@
 from django import forms
-from .models import Gare, Reservation, Journey, Passager, Client
+from .models import Station, Reservation, Journey, Passager, Client
 from django.forms import ModelForm, inlineformset_factory
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -48,7 +48,7 @@ class UserUpdateForm(forms.ModelForm):
 #Gestion de la recherche trajet
 
 class JourneySearchForm(forms.Form):
-    station = forms.ModelChoiceField(queryset=Gare.objects.all(), required=False, label="Choisir une gare")
+    station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Choisir une gare")
     choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
 
 #Gestion de la réservation
