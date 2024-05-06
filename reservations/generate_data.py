@@ -7,7 +7,7 @@ import random
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "reservations.settings")
 django.setup()
 
-from reservationsapp.models import Gare, Journey, Route
+from reservationsapp.models import Station, Journey, Route
 
 # Votre code pour générer des données ici
 
@@ -15,19 +15,19 @@ from reservationsapp.models import Gare, Journey, Route
 def generate_routes_and_journeys():
     routes = []
     journeys = []
-    gares = Gare.objects.all()
+    stations = Station.objects.all()
     start_date = datetime(2024, 5, 15)
     end_date = datetime(2024, 5, 31)
 
     # Assumons 20 routes
     for i in range(1, 21):
-        departure_station = random.choice(gares)
-        arrival_station = random.choice(gares)
+        departure_station = random.choice(stations)
+        arrival_station = random.choice(stations)
         while departure_station == arrival_station:
-            arrival_station = random.choice(gares)
+            arrival_station = random.choice(stations)
 
         routes.append({
-            "model": "reservationsapp.Route",
+            "model": "reservationsapp.route",
             "pk": i,
             "fields": {
                 "departure_station": departure_station.id,
@@ -40,7 +40,7 @@ def generate_routes_and_journeys():
             for _ in range(4):  # 4 départs par jour
                 departure_time = datetime(current_date.year, current_date.month, current_date.day, random.randint(0, 23), random.randint(0, 59))
                 journeys.append({
-                    "model": "reservationsapp.Journey",
+                    "model": "reservationsapp.journey",
                     "pk": len(journeys) + 1,
                     "fields": {
                         "route": i,

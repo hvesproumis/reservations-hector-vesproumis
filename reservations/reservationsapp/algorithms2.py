@@ -28,7 +28,7 @@ class Graph():
             Initialise graph with stations, routes and weights or edges
             ->instead of passing through the routes, go by journeys given they're associated with routes
             ->start_point / end_point required for the algorithm
-            ->start and end point correspond to a Gare object
+            ->start and end point correspond to a Station object
         """
 
         self.depart_date_time = depart_date_time
@@ -61,7 +61,7 @@ class Graph():
         
     def heuristic(self, departure_station, arrival_station):
         """
-            ->Takes two Gare objects as inputs :  it is designed to guide the search in the right direction
+            ->Takes two Station objects as inputs :  it is designed to guide the search in the right direction
             This heuristic has to mantain admissibility: to not miss the optimum
             ->Function defining the criterion telling the algorithm what node to go for based on a cost estimation
             ->Could add a combination of the time weight too but can keep simple with distance for now
@@ -146,8 +146,8 @@ class Graph():
         Find the optimal path between start_station and end_station using the A* algorithm.
         
         Args:
-        - start_station: The starting station (as a Gare object).
-        - end_station: The ending station (as a Gare object).
+        - start_station: The starting station (as a Station object).
+        - end_station: The ending station (as a Station object).
         
         Returns:
         - The optimal path as a list of station names, or None if no valid path is found.

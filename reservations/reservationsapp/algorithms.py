@@ -23,7 +23,7 @@ class Graph():
             ->instead of passing through the routes, go by journeys given they're associated with routes
             ->specify the edge type to see what weight to associate to graph
             ->start_point / end_point required for the efficient creation of a cleaner graph
-            ->start and end point correspond to a Gare object
+            ->start and end point correspond to a Station object
         """
         self.stations = Station.objects.all()
         self.journeys = Journey.objects.all() #route obj with times
