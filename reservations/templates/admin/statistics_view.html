@@ -48,24 +48,7 @@
         
             fetch(url)
             .then(response => response.json())
-            .then(data => {
-                if (type === 'reservations_by_day') {
-                    data.chart = { type: 'column' };  // Column chart for daily reservations
-                } else if (type === 'reservations_by_route') {
-                    data.chart = { type: 'pie' };  // Pie chart for reservations by route
-                    data.plotOptions = {
-                        pie: {
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: true,
-                                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                            }
-                        }
-                    };
-                }
-                Highcharts.chart('container', data);
-            })
+            .then(data => { Highcharts.chart('container', data); })
             .catch(error => console.error('Error loading the chart data:', error));
     }
 </script>
