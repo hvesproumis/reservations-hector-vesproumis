@@ -40,11 +40,9 @@
                 </div>
                 <div class="modal-body d-flex flex-column justify-content-center">
                     <div class="navbar-nav text-center">
-                        <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:journeys' %}">Satistics</a>
-                        <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:create_reservation' %}">Réserver un voyage</a>
-                        <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:reservations' %}">Mes futurs voyages</a>
-                        <a class="nav-link {% if request.resolver_match.url_name == '' %}active{% endif %}" href="{% url 'reservations:view_passagers' %}">Statistics</a>
-                        <a class="nav-link {% if request.resolver_match.url_name == 'account' %}active{% endif %}" href="{% url 'reservations:account' %}">My collab account</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'collaborator' %}active{% endif %}" href="{% url 'reservations:collaborator' %}">Statistiques</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'journeys' %}active{% endif %}" href="{% url 'reservations:journeys' %}">Accueil général</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'account' %}active{% endif %}" href="{% url 'reservations:account' %}">Mon compte collaborateur</a>
                         {% if user.is_authenticated %}
                             <a class="nav-link" href="{% url 'logout' %}?next={{ request.path }}" style="color: red;">Déconnexion</a>
 

@@ -37,6 +37,7 @@
                         <a class="nav-link {% if request.resolver_match.url_name == 'reservations' %}active{% endif %}" href="{% url 'reservations:reservations' %}">Mes futurs voyages</a>
                         <a class="nav-link {% if request.resolver_match.url_name == 'view_passagers' %}active{% endif %}" href="{% url 'reservations:view_passagers' %}">Mes passagers</a>
                         <a class="nav-link {% if request.resolver_match.url_name == 'account' %}active{% endif %}" href="{% url 'reservations:account' %}">Mon compte</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'collaborator' %}active{% endif %}" href="{% url 'reservations:collaborator' %}">Accès à TeamFranceRail</a>
                         {% if user.is_authenticated %}
                             <a class="nav-link" href="{% url 'logout' %}?next={{ request.path }}" style="color: red;">Déconnexion</a>
 
