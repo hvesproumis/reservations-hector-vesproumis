@@ -18,7 +18,7 @@ class Gare(models.Model):
     """
 
     city = models.CharField(max_length=200)
-    station_name = models.CharField(max_length=200)
+    station_name = models.CharField(max_length=200, null=True, blank=True)
     longitude = models.FloatField(max_length=10,null = True, blank=True)
     latitude = models.FloatField(max_length=10,null = True, blank=True)
     def __str__(self):
