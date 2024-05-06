@@ -24,7 +24,7 @@
     </figure>
 </div>
 
-<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="{% static 'javascript/load_chart.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Set default dates
@@ -38,6 +38,7 @@
         // Load the default chart on initial page load with default dates
         fetchAndDisplayChart();
     });
+</script>
 
 
 
