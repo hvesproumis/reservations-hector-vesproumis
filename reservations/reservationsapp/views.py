@@ -74,28 +74,29 @@ def journeys(request):
 
     if form.is_valid():
         choice = form.cleaned_data['choice']
-        station = form.cleaned_data['station']
+        departure_station = form.cleaned_data['departure_station']
+        arrival_station = form.cleaned_data['arrival_station']
         depart_date_time = form.cleaned_data['depart_date_time']
         best_route = None
         routes = Route.objects.all()
         journeys = Journey.objects.all().order_by('departure_date_time')
 
         if choice == 'depart':
-            if station:
-                routes = routes.filter(departure_station=station)
+            if departure_station:
+                routes = routes.filter(departure_station=departure_station)
                 journeys = journeys.filter(route__in=routes)
         elif choice == 'arrivee':
-            if station:
-                routes = routes.filter(arrival_station=station)
+            if arrival_station:
+                routes = routes.filter(arrival_station=arrival_station)
                 journeys = journeys.filter(route__in=routes)
         elif choice == 'dep_and_arrival':
-            start_station = form.cleaned_data.get("depart")
-            end_station = form.cleaned_data.get("arrivee")
+            #start_station = form.cleaned_data.get("depart")
+            #end_station = form.cleaned_data.get("arrivee")
             
 
-            if start_station and end_station and depart_date_time:
-                graph = Graph(start_station, end_station, depart_date_time)
-                best_route = graph.find_optimal_path(start_station, end_station)
+            if departure_station and arrival_station and depart_date_time:
+                graph = Graph(departure_station, arrival_station, depart_date_time)
+                best_route = graph.find_optimal_path(departure_station, arrival_station)
 
         paginator = Paginator(journeys, 10)
         page_number = request.GET.get('page')
