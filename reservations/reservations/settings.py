@@ -99,7 +99,7 @@ TIME_ZONE = "Europe/Paris"
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False #was True :: If USE_TZ is True, Django will store the datetime information with UTC time zone, and if it is False, it will store it with the local time zone
 
 
 # Static files (CSS, JavaScript, Images)

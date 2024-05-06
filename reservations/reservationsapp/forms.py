@@ -1,9 +1,10 @@
 from django import forms
 from .models import Station, Reservation, Journey, Passager, Client
-from django.forms import ModelForm, inlineformset_factory
+from django.forms import ModelForm, inlineformset_factory, DateTimeInput
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-
+from django.core.exceptions import ValidationError
+from datetime import datetime
 
 
 #Gestion du client
@@ -72,8 +73,31 @@ class UserUpdateForm(forms.ModelForm):
 
 class JourneySearchForm(forms.Form):
     station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Choisir une gare")
-    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
+    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée'), ('dep_and_arrival', 'Départ et Arrivée')), required=False, label="Type de trajet")
+    
+    # Adding the DateTimeField for departure date and time
+    depart_date_time = forms.DateTimeField(
+        required=False,
+        label="Choisir la date et l'heure de départ",
+        widget=DateTimeInput(
+            format='%Y-%m-%d %H:%M',  # Format for the date and time input
+            attrs={'type': 'datetime-local'}  # Ensures HTML5 date-time picker
+        )
+    )
 
+    def clean_depart_date_time(self):
+        # Get the departure date/time from the form -> checked with isvalid method
+        depart_date_time = self.cleaned_data.get('depart_date_time')
+        
+        if depart_date_time and depart_date_time < datetime.now():
+            # If it's earlier than the current time, raise a validation error
+            raise ValidationError("La date et l'heure de départ ne peuvent pas être dans le passé.")
+        
+        
+        return depart_date_time
+
+
+# Adding the DateTimeField for departure date and time
 #Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):

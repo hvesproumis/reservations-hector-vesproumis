@@ -52,6 +52,7 @@ def update_profile(request):
     return render(request, 'registration/update_profile.html', {'form': form})
 
 #Trajets
+#Trajets
 
 def journeys(request):
     """
@@ -60,39 +61,47 @@ def journeys(request):
 
     """
     form = JourneySearchForm(request.GET or None)
-    journeys = Journey.objects.select_related('route').all().order_by('departure_date_time')
+    routes = Route.objects.all()
+    journeys = Journey.objects.all().order_by('departure_date_time')
 
     if form.is_valid():
         choice = form.cleaned_data['choice']
         station = form.cleaned_data['station']
-        if choice == 'depart':
-            journeys = journeys.filter(route__departure_station=station)
-        elif choice == 'arrivee':
-            journeys = journeys.filter(route__arrival_station=station)
-
-        start_point = form.cleaned_data.get("depart")
-        end_point = form.cleaned_data.get("arrivee")
+        depart_date_time = form.cleaned_data['depart_date_time']
         best_route = None
+        routes = Route.objects.all()
+        journeys = Journey.objects.all().order_by('departure_date_time')
 
-        if start_point and end_point:  # Check that both points are provided
-            #Generate a distance graph
-            graph_distance = Graph("distance") #later include same but with cost etc.
-            graph_distance.generate_graph()
+        if choice == 'depart':
+            if station:
+                routes = routes.filter(departure_station=station)
+                journeys = journeys.filter(route__in=routes)
+        elif choice == 'arrivee':
+            if station:
+                routes = routes.filter(arrival_station=station)
+                journeys = journeys.filter(route__in=routes)
+        elif choice == 'dep_and_arrival':
+            start_station = form.cleaned_data.get("depart")
+            end_station = form.cleaned_data.get("arrivee")
+            
 
-            try:
-                # Solve for the best route (shortest path)
-                best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
-            except Exception as e:
-                print(f"Error finding shortest path: {e}")
-                
-        if best_route:
-            return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
+            if start_station and end_station and depart_date_time:
+                graph = Graph(start_station, end_station, depart_date_time)
+                best_route = graph.find_optimal_path(start_station, end_station)
 
-    paginator = Paginator(journeys, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+        paginator = Paginator(journeys, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
     
-    return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj})
+        # Return with the best_route if found, otherwise just the list of journeys
+        return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
+        
+    else:
+         # If form is invalid:
+        return render(request, 'reservationsapp/liste_journeys.html', {'form': form, 'errors': form.errors})
+    
+
 
 #Réservations
 
@@ -326,6 +335,27 @@ def advanced_search(request):
         'series': series
     } | options
     return JsonResponse(chart)
+
+#Pour info, utiliser l'API : 
+#function performSearch(typeSearch, keyword) {
+#    let url = new URL('/api/advanced-search/', window.location.origin);
+#    url.searchParams.append('type', typeSearch);
+#    url.searchParams.append('keyword', keyword);
+#
+#    fetch(url)
+#    .then(response => response.json())
+#    .then(data => {
+#       console.log(data); // Traiter et afficher les données
+#    })
+#    .catch(error => console.error('Error fetching data:', error));
+#}
+#
+#// Exemple d'utilisation
+
+
+
+
+
 
 #Pour info, utiliser l'API : 
 #function performSearch(typeSearch, keyword) {
