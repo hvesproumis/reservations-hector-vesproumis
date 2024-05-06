@@ -75,7 +75,7 @@ def trajets(request):
     best_route = None
 
     if start_point and end_point:  # Check that both points are provided
-        #Generate a distance graph
+        #apply the algorithm
         graph_distance = Graph("distance") #later include same but with cost etc.
         graph_distance.generate_graph()
 
