@@ -59,10 +59,10 @@ class Route(models.Model):
     departure_station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='departure_station')
     arrival_station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='arrival_station')
     def get_distance(self):
-        lat1 = self.departure_station.latitude()
-        long1 = self.departure_station.longitude()
-        lat2 = self.arrival_station.latitude()
-        long2 = self.arrival_station.longitude()
+        lat1 = self.departure_station.latitude
+        long1 = self.departure_station.longitude
+        lat2 = self.arrival_station.latitude
+        long2 = self.arrival_station.longitude
 
         lat1_rad =  radians(lat1)
         long1_rad = radians(long1)
@@ -83,8 +83,8 @@ class Journey(models.Model):
 
     """
     route = models.ForeignKey(Route, on_delete=models.CASCADE,related_name='route')
-    departure_date_time = models.DateTimeField(db_comment="Date et heure de départ",)
-    arrival_date_time = models.DateTimeField(db_comment="Date et heure d'arrivée",)
+    departure_date_time = models.DateTimeField(help_text="Date et heure de départ",)
+    arrival_date_time = models.DateTimeField(help_text="Date et heure d'arrivée",)
     def __str__(self):
         return f"Trajet de {self.route.departure_station} à {self.route.arrival_station} le {self.departure_date_time.strftime('%Y-%m-%d %H:%M')} - Arrivée le {self.arrival_date_time.strftime('%Y-%m-%d %H:%M')}"
 
