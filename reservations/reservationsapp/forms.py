@@ -1,6 +1,6 @@
 from django import forms
 from .models import Gare, Reservation, Journey, Passager, Client
-from django.forms import ModelForm, inlineformset_factory
+from django.forms import ModelForm, inlineformset_factory, DateTimeInput
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -48,11 +48,22 @@ class UserUpdateForm(forms.ModelForm):
 
 class TrajetSearchForm(forms.Form):
     station = forms.ModelChoiceField(queryset=Gare.objects.all(), required=False, label="Choisir une gare")
-    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée')), required=False, label="Type de trajet")
+    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée'), ('dep_and_arrival', 'Départ et Arrivée')), required=False, label="Type de trajet")
+    
+    # Adding the DateTimeField for departure date and time
+    depart_date_time = forms.DateTimeField(
+        required=False,
+        label="Choisir la date et l'heure de départ",
+        widget=DateTimeInput(
+            format='%Y-%m-%d %H:%M',  # Format for the date and time input
+            attrs={'type': 'datetime-local'}  # Ensures HTML5 date-time picker
+        )
+    )
+
 
 from django import forms
 from .models import Reservation, Passager
-
+# Adding the DateTimeField for departure date and time
 #Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):

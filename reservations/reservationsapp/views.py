@@ -64,26 +64,22 @@ def trajets(request):
     if form.is_valid():
         choice = form.cleaned_data['choice']
         station = form.cleaned_data['station']
+        depart_date_time = form.cleaned_data['depart_date_time']
+
         if choice == 'depart':
             routes = routes.filter(departure_station=station)
+            journeys = journeys.filter(route__in=routes)
         elif choice == 'arrivee':
             routes = routes.filter(arrival_station=station)
-        journeys = journeys.filter(route__in=routes)
+            journeys = journeys.filter(route__in=routes)
+        elif choice == 'dep_and_arrival':
+            start_station = form.cleaned_data.get("depart")
+            end_station = form.cleaned_data.get("arrivee")
+            best_route = None
+            
+            graph = Graph(start_station, end_station, depart_date_time)
+            best_route = graph.find_optimal_path(start_station, end_station)
 
-    start_point = form.cleaned_data.get("depart")
-    end_point = form.cleaned_data.get("arrivee")
-    best_route = None
-
-    if start_point and end_point:  # Check that both points are provided
-        #apply the algorithm
-        graph_distance = Graph("distance") #later include same but with cost etc.
-        graph_distance.generate_graph()
-
-        try:
-            # Solve for the best route (shortest path)
-            best_route = graph_distance.solve_graph_shortest_path(start_point, end_point)
-        except Exception as e:
-            print(f"Error finding shortest path: {e}")
 
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
