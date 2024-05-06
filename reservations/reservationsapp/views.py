@@ -172,7 +172,7 @@ def edit_reservation(request, if_number=None):
     
 @login_required
 def delete_reservation(request, if_number):
-    reservation = get_object_or_404(Reservation, if_number=if_number, client=client)
+    reservation = get_object_or_404(Reservation, if_number=if_number, client=request.user.client)
     reservation.delete()
     messages.success(request, "Réservation annulée avec succès.")
     return redirect('reservations:reservations')
@@ -225,7 +225,10 @@ def edit_passager(request, passager_id):
 
 @login_required
 def delete_passager(request, passager_id):
-    passager = get_object_or_404(Passager, id=passager_id, user=request.user)
+    if request.user.is_staff:
+        passager = get_object_or_404(Passager, id=passager_id)
+    else:
+        passager = get_object_or_404(Passager, id=passager_id, user=request.user)
     if passager.tickets.exists():
         messages.error(request, "Ce passager est associé à des réservations et ne peut pas être supprimé.")
     else:
