@@ -116,9 +116,9 @@ def edit_reservation(request, if_number=None):
             reservation.save()
             return redirect('reservation_detail', if_number=reservation.if_number)
         
-    route = Trajet.objects.get(id=1)
-    routes = []
-    routes.append(route)
+    routes = Trajet.objects.all()
+    # routes = []
+    # routes.append(route)
     stations = []
     
     for route in routes:

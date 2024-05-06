@@ -65,7 +65,6 @@
     source: vectorSource,
     style: {
         'icon-src': '/static/images/icon.svg',
-        'icon-opacity': 0.95,
         'icon-anchor': [0.5, 1],
         'icon-anchor-x-units': 'fraction',
         'icon-anchor-y-units': 'fraction',
@@ -85,10 +84,23 @@
     target: 'map',
     view: new ol.View({
         projection: 'EPSG:4326',
-        center: [ 1.4745892853362077, 43.56614582002566],
-        zoom: 7,
+        center: [4, 46.75],
+        zoom: 6
     }),
+    controls: []
     });
+
+    map.addControl(new ol.control.Attribution());
+
+    extent = vectorSource.getExtent()
+    if (extent) {
+        map.getView().fit(
+            extent,
+            {
+                padding: [100, 100, 100, 100]
+            }
+        );
+    }
 
     document.getElementById('zoom-out').onclick = function () {
     const view = map.getView();
