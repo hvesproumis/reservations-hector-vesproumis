@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Route, Client, Reservation, Passager, Journey, Ticket
+from .models import Route, Client, Reservation, Passager, Journey, Ticket, Gare
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
 from django.conf import settings
 from django.forms import formset_factory
@@ -15,6 +15,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from .algorithms import Graph
 from django.contrib import messages
+from django.utils.dateparse import parse_date
 
 #Utilisateur
 
@@ -28,7 +29,7 @@ def signup(request):
             user.last_name = form.cleaned_data.get('last_name')
             user.save()
             login(request, user)
-            return redirect('login')
+            return redirect('/accounts/login/')
     else:
         form = SignUpForm()
     return render(request, 'registration/signup.html', {'form': form})
@@ -260,9 +261,15 @@ def collaborator(request):
 @staff_member_required
 @require_http_methods(["GET"])
 def advanced_search(request):
-    # Récupérer les paramètres de la requête
     type_search = request.GET.get('type')
-    keyword = request.GET.get('keyword')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    keyword = request.GET.get('keyword', '')
+    
+    if start_date:
+        start_date = parse_date(start_date)
+    if end_date:
+        end_date = parse_date(end_date)
 
     # Dictionary containing optional keys for the chart, depending on the the chart wanted
     options = {}
@@ -274,43 +281,40 @@ def advanced_search(request):
         xAxis = {'type': 'category'}
         yAxis = {
             'allowDecimals': 'false',
-            'title': {
-                'text': 'Nombre de réservations'
-            }
+            'title': {'text': 'Nombre de réservations'}
         }
         
         dataset = Reservation.objects.annotate(day=TruncDay('reservation_date')).values('day').annotate(count=Count('id')).order_by('day')
-        data = list(map(lambda row: {'name': row['day'], 'y': row['count']}, dataset))
-        series = [{
-            'name': 'Réservations',
-            'data': data
-        }]
-        
+        data = [{'name': row['day'].strftime('%Y-%m-%d'), 'y': row['count']} for row in dataset]
+        series = [{'name': 'Réservations', 'data': data}]
         options['legend'] = {'enabled': 'false'}
 
     elif type_search == 'reservations_by_route':
-        chart_type = 'column'
-        title = 'Nombre de réservations effectuées par par route'
-        subtitle = ''
-        xAxis = {'type': 'category'}
-        yAxis = {
-            'allowDecimals': 'false',
-            'title': {
-                'text': 'Nombre de réservations'
-            }
-        }
-        
-        dataset = Reservation.objects.filter(journey__route=keyword).values('journey__route').annotate(count=Count('id')).order_by('journey__route')
-        
-        data = list(map(lambda row: {'name': row['journey__route'], 'y': row['count']}, dataset))
-        series = [{
-            'name': 'Réservations',
-            'data': data
-        }]
-        
-        options['legend'] = {'enabled': 'false'}
+        queryset = Ticket.objects.filter(
+            journey__departure_date_time__gte=start_date,
+            journey__departure_date_time__lte=end_date
+        ).values(
+            'journey__route__departure_station__city',
+            'journey__route__arrival_station__city'
+        ).annotate(count=Count('id')).order_by('journey__route__departure_station__city')
 
+        data = [{'name': f"{row['journey__route__departure_station__city']} - {row['journey__route__arrival_station__city']}", 'y': row['count']} for row in queryset]
+        series = [{'name': 'Nombre de réservations sur cette route', 'data': data}]
+
+        chart = {
+            'chart': {'type': 'column'},
+            'title': {'text': 'Nombre de réservations par route'},
+            'xAxis': {'type': 'category'},
+            'yAxis': {'title': {'text': 'Nombre de réservations'}, 'allowDecimals': False},
+            'series': series,
+            'legend': {'enabled': False}
+        }
+        return JsonResponse(chart)
+
+
+    
     elif type_search == 'list_reservations':
+        data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
         data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
 
     elif type_search == 'list_passengers':

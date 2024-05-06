@@ -2,15 +2,43 @@
 {% load static %}
 
 {% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <label for="startDate" class="form-label">Date de début :</label>
+        <input type="date" id="startDate" class="form-control">
 
-<script src="{% static 'javascript/load_chart.js' %}"></script>
+        <label for="endDate" class="form-label">Date de fin :</label>
+        <input type="date" id="endDate" class="form-control">
 
-<figure class="highcharts-figure">
-    <div id="container" data-url="{% url 'reservations:advanced_search' %}?type={{ type }}"></div>
-</figure>
+        <label for="chartType" class="form-label">Sélectionner la statistique :</label>
+        <select class="form-select" id="chartType">
+            <option value="reservations_by_day">Réservations par jour</option>
+            <option value="reservations_by_route">Réservations par route</option>
+        </select>
+    </div>
 
+    <button class="btn btn-primary mb-3" onclick="fetchAndDisplayChart()">Charger les données</button>
+
+    <figure class="highcharts-figure">
+        <div id="container"></div>
+    </figure>
+</div>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
 <script>
-    load_chart("container")
-</script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default dates
+        const currentDate = new Date();
+        const pastDate = new Date(currentDate.setMonth(currentDate.getMonth() - 6)).toISOString().split('T')[0];
+        const futureDate = new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0];
+
+        document.getElementById('startDate').value = pastDate;
+        document.getElementById('endDate').value = futureDate;
+
+        // Load the default chart on initial page load with default dates
+        fetchAndDisplayChart();
+    });
+
+
 
 {% endblock %}
