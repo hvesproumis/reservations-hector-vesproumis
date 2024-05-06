@@ -10,7 +10,7 @@ import numpy as np
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Client, Reservation, Passager, Journey, Ticket, Route, Station
 from .forms import JourneySearchForm, ReservationForm, ClientForm, PassagerForm, SignUpForm, UserUpdateForm
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -292,13 +292,7 @@ def collaborator(request):
     Une vue utilisée pour afficher des informations statistiques pour un administrateur de site.
     Elle repose sur la vue 'advanced_search' pour interroger les données pour les graphiques.
     """
-    type = 'reservations_by_day'
-    keyword = ''
-    context = {
-        'type' : type,
-        'keyword' : keyword
-    }
-    return render(request, 'admin/statistics_view.html', context=context)
+    return render(request, 'admin/statistics_view.html')
 
 @staff_member_required
 @require_http_methods(["GET"])
@@ -392,9 +386,11 @@ def advanced_search(request):
     
     elif type_search == 'list_reservations':
         data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
+        return JsonResponse(data)
 
     elif type_search == 'list_passengers':
         data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
+        return JsonResponse(data)
 
     elif type_search == 'occupancy_rate':
         chart_type = 'column'
