@@ -21,8 +21,8 @@ def generate_routes_and_journeys():
     routes = []
     journeys = []
     stations = list(Station.objects.all())
-    route_id = 40  # Starting ID for routes
-    journey_id = 40  # Starting ID for journeys
+    route_id = 1  # Starting ID for routes
+    journey_id = 1  # Starting ID for journeys
 
     for i in range(route_id, route_id + 20):  # Generate 30 routes
         departure_station = random.choice(stations)
@@ -69,10 +69,10 @@ def generate_reservations_and_tickets():
     tickets = []
     all_journeys = list(Journey.objects.all())
     clients = list(Client.objects.all())
-    reservation_id = 40
-    ticket_id = 40
+    reservation_id = 140
+    ticket_id = 100
 
-    for i in range(reservation_id, reservation_id + 100):  # Generate 200 reservations
+    for i in range(reservation_id, reservation_id + 1000):  # Generate 200 reservations
         client = random.choice(clients)
         selected_journeys = random.sample(all_journeys, k=random.randint(1, 3))
         reservation_date = datetime(2024, 2, 1) + timedelta(days=random.randint(0, 90))
