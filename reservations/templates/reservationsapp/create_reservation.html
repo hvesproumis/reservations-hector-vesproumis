@@ -4,6 +4,9 @@
 
 {% block content %}
 
+{% load static %}
+<link href="{% static 'css/reservationsapp/create_reservation.css' %}" rel="stylesheet">
+
 <div class="container mt-4 mb-4">
     <h2>Nouvelle réservation</h2>
     <form method="post">
