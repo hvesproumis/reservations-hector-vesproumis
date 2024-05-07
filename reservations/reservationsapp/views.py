@@ -328,7 +328,8 @@ def advanced_search(request):
                 'align': 'left',
                 'x': 3,
                 'y': -3
-            }
+            },
+            'title' : {'text': 'Date'}
         }
         yAxis = {
             'allowDecimals': False,
@@ -398,7 +399,7 @@ def advanced_search(request):
         xAxis = {'type': 'category'}
         yAxis = {
             'allowDecimals': False,
-            'title': {'text': 'Pourcentage de remplissage'}
+            'title': {'text': 'Taux de remplissage'}
         }
         
         maximum = 100 #14 * 120. = Number of cars * number of seats = max space in a train, let at 100 here for demonstration purposes
@@ -411,7 +412,7 @@ def advanced_search(request):
             departure_date_time__lte=end_date)
             for journey in journeys :
                 dataset = Ticket.objects.all().filter(journey=journey).count() * (100. / maximum)
-                data.append({'name': f"{journey.departure_date_time} - {journey.arrival_date_time}", 'y': dataset})
+                data.append({'name': journey.departure_date_time.strftime('%Y-%m-%d %H:%m'), 'y': dataset})
             series.append({'name': f"{route.departure_station}-{route.arrival_station}", 'data': data, 'visible':False})
         
     elif type_search == 'station_frequency':
@@ -421,7 +422,7 @@ def advanced_search(request):
         xAxis = {'type': 'category'}
         yAxis = {
             'allowDecimals': False,
-            'title': {'text': ''}
+            'title': {'text': 'Voyageurs'}
         }
         
         stations = Station.objects.all()
