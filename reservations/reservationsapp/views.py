@@ -5,7 +5,6 @@ Ce fichier contient toutes les vues et la logique pour faire fonctionner l'appli
 import random
 import pandas
 from datetime import timedelta
-import numpy as np
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Client, Reservation, Passager, Journey, Ticket, Route, Station
