@@ -394,7 +394,7 @@ def advanced_search(request):
 
     elif type_search == 'occupancy_rate':
         chart_type = 'column'
-        title = 'Taux de remplissage par trajets'
+        title = f'Taux de remplissage par trajets, entre le {start_date} et le {end_date}'
         subtitle = ''
         xAxis = {'type': 'category'}
         yAxis = {
@@ -407,7 +407,9 @@ def advanced_search(request):
         series = []
         for route in routes :
             data = []
-            journeys = Journey.objects.all().filter(route=route)
+            journeys = Journey.objects.all().filter(route=route).filter(
+            departure_date_time__gte=start_date,
+            departure_date_time__lte=end_date)
             for journey in journeys :
                 dataset = Ticket.objects.all().filter(journey=journey).count() * (100. / maximum)
                 data.append({'name': f"{journey.departure_date_time} - {journey.arrival_date_time}", 'y': dataset})
@@ -415,7 +417,7 @@ def advanced_search(request):
         
     elif type_search == 'station_frequency':
         chart_type = 'column'
-        title = 'Taux de passage par une gare'
+        title = f'Taux de passage par une gare, entre le {start_date} et le {end_date}'
         subtitle = ''
         xAxis = {'type': 'category'}
         yAxis = {
@@ -425,10 +427,19 @@ def advanced_search(request):
         
         stations = Station.objects.all()
         series = []
-        
-        dataset = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
-        data = [{'name': row['keyword'].strftime('%Y-%m-%d'), 'y': row['frequency']} for row in dataset]
-        series = [{'name': 'keyword', 'data': data}]
+        for station in stations :
+            tickets_arriving = Ticket.objects.all().filter(
+            journey__departure_date_time__gte=start_date,
+            journey__departure_date_time__lte=end_date).filter(journey__route__arrival_station=station).count()
+            
+            tickets_departing =  Ticket.objects.all().filter(
+            journey__departure_date_time__gte=start_date,
+            journey__departure_date_time__lte=end_date).filter(journey__route__departure_station=station).count()
+            data = [
+                {'name': "Départs", 'y': tickets_departing},
+                {'name': "Arrivées", 'y': tickets_arriving}
+            ]
+            series.append({'name': f"{station}", 'data': data, 'visible':False})
 
     else:
         return JsonResponse({}) 
