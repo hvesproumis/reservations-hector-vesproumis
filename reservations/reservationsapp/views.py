@@ -75,6 +75,7 @@ def journeys(request):
     form = JourneySearchForm(request.GET or None)
     journeys = Journey.objects.all().order_by('departure_date_time')
     best_route = None
+    stations = []
     
     if form.is_valid():
         departure_station = form.cleaned_data['departure_station']
@@ -82,19 +83,27 @@ def journeys(request):
         depart_date_time = form.cleaned_data['depart_date_time']
 
         if departure_station:
+            stations = [departure_station, departure_station]
             journeys = journeys.filter(route__departure_station=departure_station)
         if arrival_station:
+            stations = [arrival_station, arrival_station]
             journeys = journeys.filter(route__arrival_station=arrival_station)
-
+        if departure_station and arrival_station:
+            stations = [departure_station, arrival_station]
         if departure_station and arrival_station and depart_date_time:
+            stations = [departure_station, arrival_station]
             graph = Graph(departure_station, arrival_station, depart_date_time)
             best_route = graph.find_optimal_path(departure_station, arrival_station)
 
     paginator = Paginator(journeys, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # routes = Route.objects.all()
+    # stations = [Station.objects.get(id=id) for route in routes for id in (route.departure_station.id, route.arrival_station.id)]
+    serialized_stations = serializers.serialize("json", stations)
 
-    return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
+    return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route, 'stations': serialized_stations})
 
 
 

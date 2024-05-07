@@ -35,6 +35,7 @@
 {% else %}
  <!-- Otherwise, display the list of journeys -->
 <div class="trajets-section">
+    <div id="map" class="map"></div>
     <h3>Trajets disponibles</h3>
     {% for journey in page_obj %}
     <div class="card mb-2">
@@ -76,4 +77,75 @@
         <a href="{% url 'reservations:create_reservation' %}" class="btn btn-primary">Nouvelle réservation</a>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v9.1.0/ol/dist/ol.js"></script>
+<script>
+    // deserialize data
+    var stations = {{ stations | safe }}
+
+    // initialize vector source
+    const vectorSource = new ol.source.Vector();
+
+    // loop through the two consecutive stations of each route
+    for (let i = 0; i < stations.length; i=i+2) {
+
+        // get coordinates from stations
+        const lat1 = stations[i].fields.latitude
+        const long1 = stations[i].fields.longitude
+        const lat2 = stations[i+1].fields.latitude
+        const long2 = stations[i+1].fields.longitude
+
+        // create point feature from coordinates
+        const point_origin = new ol.Feature(new ol.geom.Point([long1, lat1]));
+        const point_destination = new ol.Feature(new ol.geom.Point([long2, lat2]));
+    
+        // create line feature
+        const line_route = new ol.Feature(
+        new ol.geom.LineString([
+            [long1, lat1],
+            [long2, lat2],
+        ]),
+        );
+
+        // add features to vector source
+        vectorSource.addFeature(point_origin);
+        vectorSource.addFeature(point_destination);
+        vectorSource.addFeature(line_route);
+      }
+
+    // create a vector layer based on the respective vector source
+    vectorLayer = new ol.layer.Vector({
+    source: vectorSource,
+    style: {
+        'icon-src': '/static/images/icon.svg',
+        'icon-anchor': [0.5, 1],
+        'icon-anchor-x-units': 'fraction',
+        'icon-anchor-y-units': 'fraction',
+        'stroke-width': 3,
+        'stroke-color': "#007bff",
+        'fill-color': "#007bff",
+    },
+    });
+
+    // create basic map with OSM layer and the new vector layer
+    const map = new ol.Map({
+    layers: [
+        new ol.layer.Tile({
+        source: new ol.source.OSM(),
+        }),
+        vectorLayer,
+    ],
+    target: 'map',
+    // create view centered on France by default (e.g. if no stations are loaded)
+    view: new ol.View({
+        projection: 'EPSG:4326',
+        center: [4, 46.75],
+        zoom: 6
+    }),
+    // remove all default controls from the map
+    controls: []
+    });
+
+    // add attribution to OPENLAYERS
+    map.addControl(new ol.control.Attribution());
+</script>
 {% endblock %}
