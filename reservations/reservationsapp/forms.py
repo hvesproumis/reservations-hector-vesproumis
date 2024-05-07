@@ -8,7 +8,7 @@ from django.forms import ModelForm, inlineformset_factory, DateTimeInput
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
-from datetime import datetime
+from django.utils import timezone
 
 
 #Gestion du client
@@ -127,7 +127,7 @@ class JourneySearchForm(forms.Form):
         # Get the departure date/time from the form -> checked with isvalid method
         depart_date_time = self.cleaned_data.get('depart_date_time')
         
-        if depart_date_time and depart_date_time < datetime.now():
+        if depart_date_time and depart_date_time < timezone.now():
             # If it's earlier than the current time, raise a validation error
             raise ValidationError("La date et l'heure de départ ne peuvent pas être dans le passé.")
         
