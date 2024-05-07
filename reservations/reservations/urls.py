@@ -10,5 +10,7 @@ urlpatterns = [
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
+    
+    # Redirect url
     re_path(r'^$', RedirectView.as_view(url='/reservations/journeys', permanent=True)),
 ]

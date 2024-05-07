@@ -15,8 +15,9 @@
         overflow: hidden;
     }
 </style>
-
 <div class="container mt-4 mb-4">
+
+    <!-- New reservation form -->
     <h2>Nouvelle réservation</h2>
     <form method="post" action="{% url 'reservations:create_reservation' %}">
         {% csrf_token %}
@@ -42,13 +43,11 @@
         </div>
         <button type="submit" class="btn btn-success">Enregistrer</button>
     </form>
-</div>
-
-
-<div class="container mt-4 mb-4">
+</div>    <div class="container mt-4 mb-4">
     <div id="map" class="map"></div>
     <button id="zoom-out" class="btn btn-primary">Zoom out</button>
     <button id="zoom-in" class="btn btn-primary">Zoom in</button>
+
 </div>
 <script>
     function loadJourneys() {
@@ -86,6 +85,8 @@
     
 </script>
 <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v9.1.0/ol/dist/ol.js"></script>
+
+<!-- Script used to display the route on a map -->
 <script>
     // deserialize data
     var stations = {{ stations | safe }}

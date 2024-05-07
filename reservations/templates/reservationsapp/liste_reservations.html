@@ -1,21 +1,11 @@
 {% extends 'reservationsapp/base.html' %}
+{% load static %}
 
 {% block title %}Liste des Réservations{% endblock %}
 
 {% block content %}
-<style>
-    .reservation-item {
-        background-color: #ffffff;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-        padding: 15px; 
-        margin-bottom: 10px; 
-        list-style-type: none; 
-    }
-    .reservation-link, .edit-btn {
-        text-decoration: none; 
-    }
-</style>
+<link href="{% static 'css/reservationsapp/list_reservations.css' %}" rel="stylesheet">
+
 <div class="container pt-2 my-2">
     <h2>Liste de vos réservations</h2>
     <ul style="padding-left: 0;"> 

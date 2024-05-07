@@ -324,7 +324,8 @@ def advanced_search(request):
                 'align': 'left',
                 'x': 3,
                 'y': -3
-            }
+            },
+            'title' : {'text': 'Date'}
         }
         yAxis = {
             'allowDecimals': False,
@@ -378,15 +379,8 @@ def advanced_search(request):
                 }
             }
         }
+
     
-    elif type_search == 'list_reservations':
-        data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
-        return JsonResponse(data)
-
-    elif type_search == 'list_passengers':
-        data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
-        return JsonResponse(data)
-
     elif type_search == 'occupancy_rate':
         chart_type = 'column'
         title = f'Taux de remplissage par trajets, entre le {start_date} et le {end_date}'
@@ -394,7 +388,7 @@ def advanced_search(request):
         xAxis = {'type': 'category'}
         yAxis = {
             'allowDecimals': False,
-            'title': {'text': 'Pourcentage de remplissage'}
+            'title': {'text': 'Taux de remplissage'}
         }
         
         maximum = 100 #14 * 120. = Number of cars * number of seats = max space in a train, let at 100 here for demonstration purposes
@@ -407,7 +401,7 @@ def advanced_search(request):
             departure_date_time__lte=end_date)
             for journey in journeys :
                 dataset = Ticket.objects.all().filter(journey=journey).count() * (100. / maximum)
-                data.append({'name': f"{journey.departure_date_time} - {journey.arrival_date_time}", 'y': dataset})
+                data.append({'name': journey.departure_date_time.strftime('%Y-%m-%d %H:%m'), 'y': dataset})
             series.append({'name': f"{route.departure_station}-{route.arrival_station}", 'data': data, 'visible':False})
         
     elif type_search == 'station_frequency':
@@ -417,7 +411,7 @@ def advanced_search(request):
         xAxis = {'type': 'category'}
         yAxis = {
             'allowDecimals': False,
-            'title': {'text': ''}
+            'title': {'text': 'Voyageurs'}
         }
         
         stations = Station.objects.all()
@@ -435,6 +429,16 @@ def advanced_search(request):
                 {'name': "Arrivées", 'y': tickets_arriving}
             ]
             series.append({'name': f"{station}", 'data': data, 'visible':False})
+
+    # WIP functionnalities
+    #
+    #elif type_search == 'list_reservations':
+    #    data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
+    #    return JsonResponse(data)
+    #
+    #elif type_search == 'list_passengers':
+    #    data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
+    #    return JsonResponse(data) 
 
     else:
         return JsonResponse({}) 

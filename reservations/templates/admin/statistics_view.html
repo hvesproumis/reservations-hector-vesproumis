@@ -4,6 +4,8 @@
 {% block content %}
 <div class="container mt-4">
     <div class="mb-3">
+
+        <!-- Chart options, to select or fill -->
         <label for="startDate" class="form-label">Date de début :</label>
         <input type="date" id="startDate" class="form-control">
 
@@ -26,7 +28,7 @@
     </figure>
 </div>
 
-
+<!-- Script uppdating the charts when the button is pressed -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Set default dates
