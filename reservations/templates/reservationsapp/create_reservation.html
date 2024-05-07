@@ -8,23 +8,77 @@
 <link href="{% static 'css/reservationsapp/create_reservation.css' %}" rel="stylesheet">
 
 <div class="container mt-4 mb-4">
+
+    <!-- New reservation form -->
     <h2>Nouvelle réservation</h2>
-    <form method="post">
+    <form method="post" action="{% url 'reservations:create_reservation' %}">
         {% csrf_token %}
-        <h4>Détails client</h4>
-        <div class="d-flex justify-content-between mt-4">
-            {{ client_form.as_p }}
+        <div class="form-group">
+            {{ form.client_form.as_p }}
+        </div>       
+        <div class="form-group">
+            <label for="date-select">Sélectionner une date :</label>
+            <input type="date" id="date-select" class="form-control">
+            <label for="route-select">Sélectionner une route :</label>
+            <select id="route-select" class="form-control" onchange="loadJourneys()">
+                <option value="">Choisissez une route</option>
+                {% for route in routes %}
+                <option value="{{ route.id }}">{{ route.departure_station.city }} - {{ route.arrival_station.city }}</option>
+                {% endfor %}
+            </select>
         </div>
-        <h4>Détails de la réservation</h4>
-        {{ reservation_form.as_p }}
-        <p>Si vous n'avez enregistré aucun passager • <a href="{% url 'reservations:create_passager' %}" class="btn btn-primary">cliquez ici</a></p>
+        <div class="form-group" id="journeys-container">
+            <!-- Les trajets chargés s'afficheront ici -->
+        </div>
+        <div class="form-group">
+            {{ form.passenger_form.as_p }}
+        </div>
         <button type="submit" class="btn btn-success">Enregistrer</button>
-    </form>    
+    </form>
+</div>    <div class="container mt-4 mb-4">
     <div id="map" class="map"></div>
     <button id="zoom-out" class="btn btn-primary">Zoom out</button>
     <button id="zoom-in" class="btn btn-primary">Zoom in</button>
+
 </div>
+<script>
+    function loadJourneys() {
+        const routeId = document.getElementById('route-select').value;
+        const date = document.getElementById('date-select').value;
+    
+        if (routeId && date) {
+            fetch(`/reservations/api/get-journeys-for-route/${routeId}/${date}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const journeysSelect = document.getElementById('journeys-container');
+                    let options = '<option value="">Sélectionner un horaire</option>';
+                    data.forEach(journey => {
+                        options += `<option value="${journey.id}">${journey.departure_time} to ${journey.arrival_time}</option>`;
+                    });
+                    journeysSelect.innerHTML = `<select class="form-control" name="journey">${options}</select>`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('journeys-container').innerHTML = 'Erreur dans le chargement des trajets';
+                });
+        }
+    }
+    
+    
+    
+    function selectJourney(journeyId) {
+        document.getElementById('journey-id').value = journeyId;
+    }
+    
+</script>
 <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v9.1.0/ol/dist/ol.js"></script>
+
+<!-- Script used to display the route on a map -->
 <script>
     // deserialize data
     var stations = {{ stations | safe }}

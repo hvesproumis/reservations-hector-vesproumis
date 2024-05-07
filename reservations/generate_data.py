@@ -1,5 +1,6 @@
 """
-This file contains a small program used to populate the database with new Routes and Journeys automatically
+This file contains a small program used to populate the database with new Routes, Journeys,
+Reservations, and Tickets automatically.
 """
 
 import os
@@ -13,84 +14,17 @@ django.setup()
 
 from reservationsapp.models import Station, Client, Journey, Passager, generate_if_number
 
-def generate_reservations_and_tickets():
-    """
-    A function that generates random reservations and tickets using existing clients and passengers in the database
-
-    Returns:
-        reservations: The created reservations
-        tickets: The created tickets
-    """
-    reservations = []
-    tickets = []
-    clients = Client.objects.all()
-    start_date = datetime(2024, 3, 15)
-    end_date = datetime(2024, 4, 28)
-    
-    all_journeys = Journey.objects.all()
-    clients = Client.objects.all()
-    n_ticket = 1
-
-    for i in range(1, 201): # 200 reservations
-        n_journeys = random.randint(1, 4) # number of journeys in a reservation
-        journeys = []
-        for _ in range(n_journeys):
-            a_journey = random.choice(all_journeys)
-            if a_journey not in journeys:
-                journeys.append(a_journey)
-        
-        client = random.choice(clients)
-        passengers = Passager.objects.all().filter(user=client.user)
-
-        for passenger in passengers.all():
-            for journey in journeys:
-                tickets.append({
-                    "model": "reservationsapp.ticket",
-                    "pk": n_ticket,
-                    "fields": {
-                        "if_number": generate_if_number(),
-                        "passenger": passenger.pk,
-                        "car": random.randint(1, 14),
-                        "seat": random.randint(1, 120),
-                        "reservation": i,
-                        "journey": journey.pk
-                    }
-                })
-                n_ticket += 1
-                
-        year = random.randint(start_date.year, end_date.year)
-        month = random.randint(start_date.month, end_date.month)
-        day = random.randint(start_date.day, end_date.day)
-        reservation_time = datetime(year, month, day, 0, 0)
-        reservations.append({
-            "model": "reservationsapp.reservation",
-            "pk": i,
-            "fields": {
-                "reservation_date": reservation_time.strftime("%Y-%m-%d"),
-                "if_number": generate_if_number(),
-                "client" : client.pk,
-                "journeys": [journey.pk for journey in journeys]
-            }
-        })
-
-    return reservations, tickets
-
-
 def generate_routes_and_journeys():
     """
-    A function that generates random routes and journeys using existing stations in the database
-
-    Returns:
-        routes: The created routes
-        journeys: The created journeys
+    Generates random routes and journeys using existing stations in the database.
     """
     routes = []
     journeys = []
-    stations = Station.objects.all()
-    start_date = datetime(2024, 5, 15)
-    end_date = datetime(2024, 5, 31)
+    stations = list(Station.objects.all())
+    route_id = 40  # Starting ID for routes
+    journey_id = 40  # Starting ID for journeys
 
-    for i in range(1, 21): # 20 routes
+    for i in range(route_id, route_id + 20):  # Generate 30 routes
         departure_station = random.choice(stations)
         arrival_station = random.choice(stations)
         while departure_station == arrival_station:
@@ -105,31 +39,83 @@ def generate_routes_and_journeys():
             }
         })
 
+        # Generate multiple journeys for each route
+        start_date = datetime(2024, 5, 1)
+        end_date = datetime(2024, 5, 31)
         current_date = start_date
         while current_date <= end_date:
-            for _ in range(4):  # 4 departures a day
-                departure_time = datetime(current_date.year, current_date.month, current_date.day, random.randint(0, 23), random.randint(0, 59))
-                journeys.append({
-                    "model": "reservationsapp.journey",
-                    "pk": len(journeys) + 1,
-                    "fields": {
-                        "route": i,
-                        "departure_date_time": departure_time.strftime("%Y-%m-%dT%H:%M"),
-                        "arrival_date_time": (departure_time + timedelta(hours=random.randint(1, 5))).strftime("%Y-%m-%dT%H:%M")
-                    }
-                })
+            departure_time = datetime(current_date.year, current_date.month, current_date.day, 
+                                      random.randint(6, 20), random.randint(0, 59))
+            arrival_time = departure_time + timedelta(hours=random.randint(1, 3))
+            journeys.append({
+                "model": "reservationsapp.journey",
+                "pk": journey_id,
+                "fields": {
+                    "route": i,
+                    "departure_date_time": departure_time.strftime("%Y-%m-%dT%H:%M"),
+                    "arrival_date_time": arrival_time.strftime("%Y-%m-%dT%H:%M")
+                }
+            })
+            journey_id += 1
             current_date += timedelta(days=1)
 
     return routes, journeys
 
+def generate_reservations_and_tickets():
+    """
+    Generates random reservations and tickets using existing clients and journeys.
+    """
+    reservations = []
+    tickets = []
+    all_journeys = list(Journey.objects.all())
+    clients = list(Client.objects.all())
+    reservation_id = 40
+    ticket_id = 40
+
+    for i in range(reservation_id, reservation_id + 100):  # Generate 200 reservations
+        client = random.choice(clients)
+        selected_journeys = random.sample(all_journeys, k=random.randint(1, 3))
+        reservation_date = datetime(2024, 2, 1) + timedelta(days=random.randint(0, 90))
+
+        reservations.append({
+            "model": "reservationsapp.reservation",
+            "pk": i,
+            "fields": {
+                "reservation_date": reservation_date.strftime("%Y-%m-%d"),
+                "if_number": generate_if_number(),
+                "client": client.id,
+                "journeys": [j.id for j in selected_journeys]
+            }
+        })
+
+        for journey in selected_journeys:
+            passengers = Passager.objects.filter(user=client.user)
+            for passenger in passengers:
+                tickets.append({
+                    "model": "reservationsapp.ticket",
+                    "pk": ticket_id,
+                    "fields": {
+                        "if_number": generate_if_number(),
+                        "passenger": passenger.id,
+                        "car": random.randint(1, 15),
+                        "seat": random.randint(1, 120),
+                        "journey": journey.id,
+                        "reservation": i
+                    }
+                })
+                ticket_id += 1
+
+    return reservations, tickets
+
 def write_to_json():
     """
-    Writes routes and journeys into a json file
+    Writes generated data into a JSON file.
     """
     routes, journeys = generate_routes_and_journeys()
     reservations, tickets = generate_reservations_and_tickets()
-    data =  routes + journeys + reservations + tickets
-    with open('add_data.json', 'w') as f:
+    data = routes + journeys + reservations + tickets
+    with open('generated_data.json', 'w') as f:
         json.dump(data, f, indent=4)
 
-write_to_json()
+if __name__ == '__main__':
+    write_to_json()

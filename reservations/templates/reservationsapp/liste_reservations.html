@@ -1,10 +1,9 @@
 {% extends 'reservationsapp/base.html' %}
+{% load static %}
 
 {% block title %}Liste des Réservations{% endblock %}
 
 {% block content %}
-
-{% load static %}
 <link href="{% static 'css/reservationsapp/list_reservations.css' %}" rel="stylesheet">
 
 <div class="container pt-2 my-2">
@@ -12,9 +11,9 @@
     <ul style="padding-left: 0;"> 
         {% for reservation in reservations %}
             <li class="reservation-item">
-                Réservation <a href="{% url 'reservations:reservation_detail' reservation.if_number %}" class="reservation-link">{{ reservation.if_number }}</a>
+                Réservation <a href="{% url 'reservations:reservation_detail' reservation.if_number %}" class="reservation-link">{{ reservation.if_number }}</a> pour {{ reservation.client.first_name }} {{ reservation.client.last_name }} sur le trajet de {{ reservation.trajet.depgare.ville }} - {{ reservation.trajet.depgare.nomgare }} à {{ reservation.trajet.arrgare.ville }} - {{ reservation.trajet.arrgare.nomgare }} le {{ reservation.trajet.depdh|date:"j F Y à H:i" }}.
                 <a href="{% url 'reservations:edit_reservation' reservation.if_number %}" class="btn btn-warning edit-btn">Éditer</a>
-                <a href="{% url 'reservations:delete_reservation' reservation.if_number %}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action est irréversible.');">Annuler</a>
+                <a href="{% url 'reservations:delete_reservation' reservation.if_number %}" class="btn btn-danger delete-btn">Supprimer</a>
             </li>
         {% endfor %}
     </ul>
