@@ -140,9 +140,9 @@ class JourneySearchForm(forms.Form):
 
 class ReservationForm(forms.ModelForm):
     route = forms.ModelChoiceField(queryset=Route.objects.all(), label="Sélectionner une route")
-    journey = forms.ModelChoiceField(queryset=Journey.objects.none(), label="Sélectionner un trajet")
+    journey = forms.ModelChoiceField(queryset=Journey.objects.none(), required=False, label="Sélectionner un trajet")
     passengers = forms.ModelMultipleChoiceField(
-        queryset=Passager.objects.none(),
+        queryset=Passager.objects.none(),  # This will be dynamically loaded based on user
         label="Sélectionner des passagers pré-enregistrés",
         widget=forms.CheckboxSelectMultiple()
     )
@@ -154,35 +154,30 @@ class ReservationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(ReservationForm, self).__init__(*args, **kwargs)
-        
         if user:
             self.fields['passengers'].queryset = Passager.objects.filter(user=user)
+            self.fields['journey'].queryset = Journey.objects.all()  # Initially allow all, filter in view
 
-        self.fields['route'].widget.attrs['onchange'] = 'fetch_journeys(this.value)'
-        self.fields['route'].widget.attrs['class'] = 'form-control'
-        self.fields['journey'].widget.attrs['class'] = 'form-control'
-
-        self.fields['route'].empty_label = 'Sélectionnez une route'
-        self.fields['journey'].empty_label = 'Sélectionnez un trajet'
+        # Add JavaScript controls dynamically
+        self.fields['route'].widget.attrs.update({
+            'onchange': 'fetch_journeys(this.value);',
+            'class': 'form-control'
+        })
+        self.fields['journey'].widget.attrs.update({
+            'class': 'form-control'
+        })
+        self.fields['passengers'].widget.attrs.update({
+            'class': 'form-control'
+        })
 
     def clean_journey(self):
         route = self.cleaned_data.get('route')
         journey = self.cleaned_data.get('journey')
         
         if route and journey:
-            # Vérifier si le trajet appartient à la route sélectionnée
             if journey.route != route:
                 raise forms.ValidationError("Le trajet sélectionné ne correspond pas à la route sélectionnée.")
-        
         return journey
-
-    def get_initial_for_field(self, field, field_name):
-        if field_name == 'journey':
-            # Chargez les trajets disponibles en fonction de la route sélectionnée
-            route = self.initial.get('route')
-            if route:
-                return Journey.objects.filter(route=route)
-        return super().get_initial_for_field(field, field_name)
 
 
 class PassagerForm(forms.ModelForm):

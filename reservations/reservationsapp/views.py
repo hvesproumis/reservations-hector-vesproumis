@@ -18,6 +18,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib.auth import login
 from django.core import serializers
+from django.core.serializers import serialize
 from django.contrib import messages
 from django.utils.dateparse import parse_date
 from .algorithms2 import Graph
@@ -69,23 +70,24 @@ def update_profile(request):
 # Journeys
 
 def journeys(request):
-    """
-    Une vue pour afficher à l'utilisateur une liste de trajets, basée sur des gares de départ et d'arrivée choisies.
-    """
     form = JourneySearchForm(request.GET or None)
+    best_route = None  # Initialize best_route
     journeys = Journey.objects.all().order_by('departure_date_time')
-    best_route = None
-    
-    if form.is_valid():
-        departure_station = form.cleaned_data['departure_station']
-        arrival_station = form.cleaned_data['arrival_station']
-        depart_date_time = form.cleaned_data['depart_date_time']
 
+    if form.is_valid():
+        departure_station = form.cleaned_data.get('departure_station')
+        arrival_station = form.cleaned_data.get('arrival_station')
+        depart_date_time = form.cleaned_data.get('depart_date_time')
+
+        # Apply filters based on form inputs
         if departure_station:
             journeys = journeys.filter(route__departure_station=departure_station)
         if arrival_station:
             journeys = journeys.filter(route__arrival_station=arrival_station)
+        if depart_date_time:
+            journeys = journeys.filter(departure_date_time__date=depart_date_time.date())
 
+        # Check for an optimal path only if both stations and date are specified
         if departure_station and arrival_station and depart_date_time:
             graph = Graph(departure_station, arrival_station, depart_date_time)
             best_route = graph.find_optimal_path(departure_station, arrival_station)
@@ -94,7 +96,11 @@ def journeys(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
+    return render(request, 'reservationsapp/list_journeys.html', {
+        'form': form,
+        'page_obj': page_obj,
+        'best_route': best_route
+    })
 
 
 
@@ -139,16 +145,16 @@ def reservation_detail(request, if_number):
     
     return render(request, 'reservationsapp/reservation_detail.html', context=context)
 
+
 @login_required
 def edit_reservation(request, if_number=None):
     """
-    Une vue utilisée pour créer ou modifier une réservation en utilisant le formulaire ReservationForm.
+    View for creating or updating a reservation using the ReservationForm.
 
     Args:
-        if_number (Char, facultatif): L'identifiant de la réservation que le client souhaite modifier.
-        Par défaut à None signifie la création d'une nouvelle réservation.
+    if_number (str, optional): The identifier of the reservation that the client wants to edit.
+    Default is None, which means a new reservation is being created.
     """
-    template_name = 'reservationsapp/create_reservation.html'
     user = request.user
     client, created = Client.objects.get_or_create(user=user)
 
@@ -157,9 +163,10 @@ def edit_reservation(request, if_number=None):
         template_name = 'reservationsapp/edit_reservation.html'
     else:
         reservation = Reservation(client=client)
+        template_name = 'reservationsapp/create_reservation.html'
 
     client_form = ClientForm(request.POST or None, instance=client)
-    reservation_form = ReservationForm(request.POST or None, instance=reservation, user=request.user)
+    reservation_form = ReservationForm(request.POST or None, instance=reservation, user=user)
 
     if request.method == 'POST':
         if client_form.is_valid() and reservation_form.is_valid():
@@ -167,29 +174,18 @@ def edit_reservation(request, if_number=None):
             reservation = reservation_form.save(commit=False)
             reservation.client = client
             reservation.save()
+            reservation_form.save_m2m()  # To save many-to-many data for passengers and journeys
 
-            Ticket.objects.filter(reservation=reservation).delete()
-            
-            passengers = reservation_form.cleaned_data['passengers']
-            journeys = reservation_form.cleaned_data['journeys']
-            for passenger in passengers:
-                for journey in journeys:
-                    Ticket.objects.create(
-                        reservation=reservation,
-                        journey=journey,
-                        passenger=passenger,
-                        car=random.randint(1, 14),
-                        seat=random.randint(1, 120)
-                    )
             return redirect('reservations:reservation_detail', if_number=reservation.if_number)
-    
-    routes = Journey.objects.all()
-    stations = [Station.objects.get(id=route.route.departure_station.id) for route in routes]
-    serialized_stations = serializers.serialize("json", stations)
+
+    routes = Route.objects.all()
+    stations = Station.objects.all()
+    serialized_stations = serialize("json", stations)
 
     return render(request, template_name, {
         'client_form': client_form,
         'reservation_form': reservation_form,
+        'routes': routes,
         'stations': serialized_stations
     })
 
@@ -453,3 +449,30 @@ def advanced_search(request):
     } | options
     
     return JsonResponse(chart)
+
+#API
+
+def get_dates_for_route(request, route_id):
+    """ Returns a list of unique dates when journeys are scheduled for a given route """
+    dates = Journey.objects.filter(route_id=route_id).dates('departure_date_time', 'day').distinct()
+    dates = [date.strftime('%Y-%m-%d') for date in dates]
+    return JsonResponse({'dates': dates})
+
+def get_trips_for_date(request, route_id, date):
+    """ Returns journeys for a given route and date """
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+    journeys = Journey.objects.filter(route_id=route_id, departure_date_time__date=date_obj)
+    trips = [{'id': journey.id, 'departure_time': journey.departure_date_time.strftime('%H:%M'), 'arrival_time': journey.arrival_date_time.strftime('%H:%M')} for journey in journeys]
+    return JsonResponse({'trips': trips})
+
+def get_journeys_for_route(request, route_id, date):
+    """
+    Renvoie les trajets disponibles pour une route et une date données.
+    """
+    journeys = Journey.objects.filter(route_id=route_id, departure_date_time__date=date).order_by('departure_date_time')
+    data = [{
+        'id': journey.id,
+        'departure_time': journey.departure_date_time.strftime('%Y-%m-%d %H:%M'),
+        'arrival_time': journey.arrival_date_time.strftime('%Y-%m-%d %H:%M')
+    } for journey in journeys]
+    return JsonResponse(data, safe=False)
