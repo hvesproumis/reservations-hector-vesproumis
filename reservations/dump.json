@@ -12,7 +12,7 @@
             "email": "admin@admin.admin",
             "is_staff": true,
             "is_active": true,
-            "date_joined": "24-05-06T06:46:33Z02",
+            "date_joined": "24-05-06T06:46:33Z",
             "groups": [],
             "user_permissions": []
         }
