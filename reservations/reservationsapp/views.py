@@ -383,15 +383,8 @@ def advanced_search(request):
                 }
             }
         }
+
     
-    elif type_search == 'list_reservations':
-        data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
-        return JsonResponse(data)
-
-    elif type_search == 'list_passengers':
-        data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
-        return JsonResponse(data)
-
     elif type_search == 'occupancy_rate':
         chart_type = 'column'
         title = f'Taux de remplissage par trajets, entre le {start_date} et le {end_date}'
@@ -440,6 +433,16 @@ def advanced_search(request):
                 {'name': "Arrivées", 'y': tickets_arriving}
             ]
             series.append({'name': f"{station}", 'data': data, 'visible':False})
+
+    # WIP functionnalities
+    #
+    #elif type_search == 'list_reservations':
+    #    data = list(Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).annotate(total_passengers=Sum('passenger_count')))
+    #    return JsonResponse(data)
+    #
+    #elif type_search == 'list_passengers':
+    #    data = Passager.objects.filter(journey__route=keyword).values('name', 'journey__route')
+    #    return JsonResponse(data) 
 
     else:
         return JsonResponse({}) 
