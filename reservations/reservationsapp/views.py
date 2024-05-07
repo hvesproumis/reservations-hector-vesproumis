@@ -18,6 +18,9 @@ from django.core import serializers
 from django.contrib import messages
 from django.utils.dateparse import parse_date
 from .algorithms2 import Graph
+from datetime import datetime
+from django.db.models import DateField
+
 
 
 # User
@@ -63,42 +66,58 @@ def update_profile(request):
     return render(request, 'registration/update_profile.html', {'form': form})
 
 
-# Journeys
-
 def journeys(request):
-    """
-    Une vue pour afficher à l'utilisateur une liste de trajets, basée sur des gares de départ et d'arrivée choisies.
-    """
     form = JourneySearchForm(request.GET or None)
-    journeys = Journey.objects.all().order_by('departure_date_time')
+    selected_date = request.GET.get('date')  # Fetch the selected date from GET parameters
+    available_dates = get_available_journey_dates()  # Fetch available dates
+
+    journeys = Journey.objects.none()  # Initialize with no journeys
+    best_route = None  # Initialize best_route
 
     if form.is_valid():
-        choice = form.cleaned_data['choice']
-        station = form.cleaned_data['station']
-        depart_date_time = form.cleaned_data['depart_date_time']
-        best_route = None
+        depart_station = form.cleaned_data.get('depart_station')
+        arrival_station = form.cleaned_data.get('arrival_station')
+        
+        # Handling the date from the form directly
+        selected_datetime = form.cleaned_data.get('depart_date_time')
 
-        if choice == 'depart':
-            if station:
-                journeys = journeys.filter(route__departure_station=station)
-        elif choice == 'arrivee':
-            if station:
-                journeys = journeys.filter(route__arrival_station=station)
-        elif choice == 'dep_and_arrival':
-            start_station = form.cleaned_data.get("depart")
-            end_station = form.cleaned_data.get("arrivee")
+        if depart_station and arrival_station and selected_datetime:
+            # Convert string date to datetime object, necessary for checking availability
+            selected_datetime = datetime.strptime(selected_date, '%Y-%m-%d')
+            journeys = Journey.objects.filter(
+                route__departure_station=depart_station,
+                route__arrival_station=arrival_station,
+                departure_date_time__date=selected_datetime
+            ).order_by('departure_date_time')
 
-            if start_station and end_station and depart_date_time:
-                graph = Graph(start_station, end_station, depart_date_time)
-                best_route = graph.find_optimal_path(start_station, end_station)
+            # If no direct journeys are found, look for best route using the graph
+            if not journeys.exists():
+                graph = Graph(depart_station, arrival_station, selected_datetime)
+                path = graph.find_optimal_path(depart_station, arrival_station)
+                if path:  # Ensure path was found
+                    best_route = {
+                        'start_station': depart_station,
+                        'end_station': arrival_station,
+                        'path': path
+                    }
 
-    paginator = Paginator(journeys, 10)
+    paginator = Paginator(journeys, 10)  # Paginate the filtered journeys
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'reservationsapp/list_journeys.html', {'form': form, 'page_obj': page_obj, 'best_route': best_route})
-
-
+    return render(request, 'reservationsapp/list_journeys.html', {
+        'form': form,
+        'page_obj': page_obj,
+        'best_route': best_route,
+        'available_dates': available_dates
+    })
+    
+#to display only dates with available journeys
+def get_available_journey_dates():
+    # Fetch only the departure_date_time and process dates in Python
+    journeys = Journey.objects.all().values_list('departure_date_time', flat=True)
+    dates = set(journey.date() for journey in journeys)  # Convert to date and use set to get unique dates
+    return sorted(dates)  # Return a sorted list of dates
 
 # Reservations
 

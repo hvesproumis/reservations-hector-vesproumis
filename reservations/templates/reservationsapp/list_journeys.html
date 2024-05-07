@@ -2,8 +2,6 @@
 {% load static %}
 
 {% block content %}
-
-{% load static %}
 <link href="{% static 'css/reservationsapp/list_journeys.css' %}" rel="stylesheet">
 <style>
     .header-logo {
@@ -11,29 +9,19 @@
         padding: 20px 0;
     }
     .header-logo img {
-        width: 100px;  
-        border: 1px solid #ccc;  
+        width: 100px;
+        border: 1px solid #ccc;
         box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     }
-    .form-search {
+    .form-search, .trajets-section, .optimal-path {
         margin-top: 20px;
         background: white;
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    .trajets-section {
-        padding: 20px 0;
-    }
-    .btn-primary {
+    .btn-primary, .btn-success {
         margin-top: 20px;
-    }
-    .optimal-path {
-        padding: 20px;
-        border: 1px solid #bb1010;
-        border-radius: 8px;
-        background: #00ffff;
-        margin-bottom: 20px;
     }
 </style>
 
@@ -45,66 +33,42 @@
         <div class="col-md-8 form-search">
             <form method="get">
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-success">Filtrer les trajets</button>
+                <button type="submit" class="btn btn-success">Rechercher les trajets</button>
             </form>
         </div>
     </div>
 
-    
-
- <!-- Display the optimal path if best_route is available -->
-{% if best_route %}
-<div class="optimal-path">
-    <h4>Optimal Path</h4>
-    <p>Optimal path from start to end:</p>
-    <ul>
-        {% for station in best_route %}
-        <li>{{ station }}</li>
-        {% endfor %}
-    </ul>
-</div>
-{% else %}
- <!-- Otherwise, display the list of journeys -->
-<div class="trajets-section">
-    <h3>Trajets disponibles</h3>
-    {% for journey in page_obj %}
-    <div class="card mb-2">
-        <div class="card-body">
-            <p>{{ journey.route.departure_station.city }} {{ journey.route.departure_station.station_name }} à {{ journey.route.arrival_station.city }} {{ journey.route.arrival_station.station_name }} - Départ : {{ journey.departure_date_time|date:"d M Y H:i" }}</p>
-        </div>
-    </div>
-    {% empty %}
-        <p>Aucun trajet disponible.</p>
-    {% endfor %}
-        
-        <!-- Contrôles de pagination -->
-        {% if page_obj.has_other_pages %}
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page=1">&laquo;</a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
-            </li>
-            {% endif %}
-            <li class="page-item active">
-                <a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a>
-            </li>
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
-            </li>
-            {% endif %}
+    <!-- Display optimal path or available journeys -->
+    {% if best_route %}
+    <div class="optimal-path">
+        <h4>Optimal Path</h4>
+        <ul>
+            {% for segment in best_route %}
+            <li>{{ segment.station }} - Depart: {{ segment.departure|date:"d M Y H:i" }} Arrive: {{ segment.arrival|date:"d M Y H:i" }}</li>
+            {% endfor %}
         </ul>
-        {% endif %}
     </div>
+    {% elif journeys %}
+    <div class="trajets-section">
+        <h3>Trajets disponibles</h3>
+        {% for journey in journeys %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <p>{{ journey.route.departure_station.city }} {{ journey.route.departure_station.station_name }} à {{ journey.route.arrival_station.city }} {{ journey.route.arrival_station.station_name }} - Départ : {{ journey.departure_date_time|date:"d M Y H:i" }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p>Aucun trajet disponible selon les critères de recherche.</p>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="form-search">Veuillez sélectionner des stations et une date pour voir les trajets disponibles ou les itinéraires avec correspondances.</p>
     {% endif %}
+
     <div class="text-center mb-2">
-        <a href="{% url 'reservations:create_reservation' %}" class="btn btn-primary">Nouvelle réservation</a>
+        <a href="{% url 'reservations:create_reservation' %}" class="btn btn-primary">Créer une nouvelle réservation</a>
     </div>
 </div>
+
 {% endblock %}
+

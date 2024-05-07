@@ -4,7 +4,7 @@ This file contains custom forms used in the different views
 
 from django import forms
 from .models import Station, Reservation, Journey, Passager, Client, Route
-from django.forms import ModelForm, inlineformset_factory, DateTimeInput
+from django.forms import ModelForm, inlineformset_factory, DateTimeField, DateTimeInput
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
@@ -103,39 +103,39 @@ class UserUpdateForm(forms.ModelForm):
 
 # Reservation and journey management
 class JourneySearchForm(forms.Form):
-    """
-    A form to search for a specific journey using a departure or arrival station
-
-    Fields:
-        station (Station): The desired departure/arrival station
-        choice (depart/arrivee): A choice to specify if the station is a departure or an arrival station for the query
-    """
-    station = forms.ModelChoiceField(queryset=Station.objects.all(), required=False, label="Choisir une gare")
-    choice = forms.ChoiceField(choices=(('depart', 'Départ'), ('arrivee', 'Arrivée'), ('dep_and_arrival', 'Départ et Arrivée')), required=False, label="Type de trajet")
-    
-    # Adding the DateTimeField for departure date and time
-    depart_date_time = forms.DateTimeField(
-        required=False,
-        label="Choisir la date et l'heure de départ",
-        widget=DateTimeInput(
-            format='%Y-%m-%d %H:%M',  # Format for the date and time input
-            attrs={'type': 'datetime-local'}  # Ensures HTML5 date-time picker
-        )
+    depart_station = forms.ModelChoiceField(
+        queryset=Station.objects.all(), 
+        required=True, 
+        label="Gare de départ"
+    )
+    arrival_station = forms.ModelChoiceField(
+        queryset=Station.objects.all(), 
+        required=True, 
+        label="Gare d'arrivée"
+    )
+    depart_date_time = DateTimeField(
+        widget=DateTimeInput(attrs={'type': 'datetime-local'}),
+        label="Date et heure de départ",
+        required=False
     )
 
-    def clean_depart_date_time(self):
-        # Get the departure date/time from the form -> checked with isvalid method
-        depart_date_time = self.cleaned_data.get('depart_date_time')
-        
-        if depart_date_time and depart_date_time < datetime.now():
-            # If it's earlier than the current time, raise a validation error
-            raise ValidationError("La date et l'heure de départ ne peuvent pas être dans le passé.")
-        
-        
-        return depart_date_time
+    def clean(self):
+        cleaned_data = super().clean()
+        depart_station = cleaned_data.get("depart_station")
+        arrival_station = cleaned_data.get("arrival_station")
+        depart_date_time = cleaned_data.get("depart_date_time")
 
+        if not depart_station or not arrival_station:
+            raise forms.ValidationError("Les gares de départ et d'arrivée sont requises.")
 
-# Adding the DateTimeField for departure date and time
+        if depart_station == arrival_station:
+            raise forms.ValidationError("Les gares de départ et d'arrivée doivent être différentes.")
+
+        if not depart_date_time:
+            raise forms.ValidationError("La date et l'heure de départ sont requises.")
+
+        return cleaned_data
+
 #Gestion de la réservation
 
 class ReservationForm(forms.ModelForm):
