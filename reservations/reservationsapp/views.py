@@ -402,7 +402,7 @@ def advanced_search(request):
             'title': {'text': 'Pourcentage de remplissage'}
         }
         
-        maximum = 14 * 120. # Number of cars * number of seats = max space in a train
+        maximum = 100 #14 * 120. = Number of cars * number of seats = max space in a train, let at 100 here for demonstration purposes
         routes = Route.objects.all()
         series = []
         for route in routes :
@@ -422,6 +422,9 @@ def advanced_search(request):
             'allowDecimals': False,
             'title': {'text': ''}
         }
+        
+        stations = Station.objects.all()
+        series = []
         
         dataset = Reservation.objects.filter(Q(route__departure_station=keyword) | Q(route__arrival_station=keyword)).values('journey__depgare').annotate(frequency=Count('id'))
         data = [{'name': row['keyword'].strftime('%Y-%m-%d'), 'y': row['frequency']} for row in dataset]
