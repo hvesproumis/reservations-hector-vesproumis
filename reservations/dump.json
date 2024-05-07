@@ -4,7 +4,7 @@
         "pk": 1,
         "fields": {
             "password": "pbkdf2_sha256$600000$5n2yFPd6nOEkTENYQWJYAo$Hhc5bCig+AYv72Md4QzDtScATIaBjfbmvCWUevKVZmc=",
-            "last_login": "2024-05-06T20:19:04Z",
+            "last_login": null,
             "is_superuser": true,
             "username": "admin",
             "first_name": "admin",
@@ -12,7 +12,7 @@
             "email": "admin@admin.admin",
             "is_staff": true,
             "is_active": true,
-            "date_joined": "2024-05-06T06:46:33Z",
+            "date_joined": null,
             "groups": [],
             "user_permissions": []
         }
@@ -30,7 +30,7 @@
             "email": "",
             "is_staff": false,
             "is_active": true,
-            "date_joined": "2024-05-06T20:21:36Z",
+            "date_joined": null,
             "groups": [],
             "user_permissions": []
         }
@@ -48,7 +48,7 @@
             "email": "",
             "is_staff": false,
             "is_active": true,
-            "date_joined": "2024-05-06T20:21:47Z",
+            "date_joined": null,
             "groups": [],
             "user_permissions": []
         }
