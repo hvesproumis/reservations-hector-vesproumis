@@ -183,8 +183,8 @@ def edit_reservation(request, if_number=None):
                     )
             return redirect('reservations:reservation_detail', if_number=reservation.if_number)
     
-    routes = Journey.objects.all()
-    stations = [Station.objects.get(id=route.route.departure_station.id) for route in routes]
+    routes = Route.objects.all()
+    stations = [Station.objects.get(id=id) for route in routes for id in (route.departure_station.id, route.arrival_station.id)]
     serialized_stations = serializers.serialize("json", stations)
 
     return render(request, template_name, {
