@@ -4,9 +4,14 @@ This file contains all the used urls for the application
 
 from django.urls import path
 from . import views
+from django.views.generic.base import RedirectView
+
 
 app_name = "reservations"  # This should match the namespace used in the project's urls.py
 urlpatterns = [
+    # Redirect url
+    path('', views.journeys, name='journeys-nokey'),
+    
     # Account related urls
     path('signup/', views.signup, name='signup'),
     path('account/', views.account, name='account'),
