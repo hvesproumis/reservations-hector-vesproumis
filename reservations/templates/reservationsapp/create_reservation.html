@@ -3,8 +3,9 @@
 {% block title %}Créer une nouvelle réservation{% endblock %}
 
 {% block content %}
-
 <div class="container mt-4 mb-4">
+
+    <!-- New reservation form -->
     <h2>Nouvelle réservation</h2>
     <form method="post">
         {% csrf_token %}
@@ -16,11 +17,15 @@
         {{ reservation_form.as_p }}
         <p>Si vous n'avez enregistré aucun passager • <a href="{% url 'reservations:create_passager' %}" class="btn btn-primary">cliquez ici</a></p>
         <button type="submit" class="btn btn-success">Enregistrer</button>
-    </form>    
+    </form>   
+
+    <!-- Navigation on the map that displays the route -->
     <div id="map" class="map"></div>
     <button id="zoom-out" class="btn btn-primary">Zoom out</button>
     <button id="zoom-in" class="btn btn-primary">Zoom in</button>
+
 </div>
+
 <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v9.1.0/ol/dist/ol.js"></script>
 <script>
     // deserialize data
